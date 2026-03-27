@@ -12,8 +12,8 @@
     }
 
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f0f2f5;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0d0d14;
       display: flex;
       justify-content: center;
       padding: 40px 16px;
@@ -21,9 +21,10 @@
     }
 
     .container {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      background: #16162a;
+      border: 1px solid #2a2a45;
+      border-radius: 16px;
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(130, 100, 255, 0.08);
       padding: 32px;
       width: 100%;
       max-width: 480px;
@@ -31,68 +32,90 @@
     }
 
     h1 {
-      font-size: 1.6rem;
-      color: #1a1a2e;
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      background: linear-gradient(135deg, #a78bfa, #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
       margin-bottom: 24px;
     }
 
     .input-row {
       display: flex;
       gap: 8px;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
 
     .input-row input {
       flex: 1;
-      padding: 10px 14px;
-      border: 2px solid #e0e0e0;
-      border-radius: 8px;
-      font-size: 1rem;
+      padding: 11px 16px;
+      background: #0d0d14;
+      border: 1.5px solid #2a2a45;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      color: #e2e2f0;
       outline: none;
-      transition: border-color 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .input-row input::placeholder {
+      color: #4a4a6a;
     }
 
     .input-row input:focus {
-      border-color: #4f6ef7;
+      border-color: #7c5cfc;
+      box-shadow: 0 0 0 3px rgba(124, 92, 252, 0.15);
     }
 
     .input-row button {
-      padding: 10px 18px;
-      background: #4f6ef7;
+      padding: 11px 20px;
+      background: linear-gradient(135deg, #7c5cfc, #5b8dee);
       color: #fff;
       border: none;
-      border-radius: 8px;
-      font-size: 1rem;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: opacity 0.2s, transform 0.1s;
       white-space: nowrap;
     }
 
     .input-row button:hover {
-      background: #3a57d6;
+      opacity: 0.85;
+    }
+
+    .input-row button:active {
+      transform: scale(0.97);
     }
 
     .filters {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       margin-bottom: 16px;
+      background: #0d0d14;
+      border-radius: 10px;
+      padding: 4px;
     }
 
     .filters button {
-      padding: 6px 14px;
-      border: 2px solid #e0e0e0;
-      border-radius: 20px;
-      background: #fff;
-      font-size: 0.85rem;
+      flex: 1;
+      padding: 7px 0;
+      border: none;
+      border-radius: 7px;
+      background: transparent;
+      font-size: 0.82rem;
+      font-weight: 500;
       cursor: pointer;
       transition: all 0.2s;
-      color: #555;
+      color: #5a5a80;
     }
 
     .filters button.active {
-      background: #4f6ef7;
-      border-color: #4f6ef7;
-      color: #fff;
+      background: #1e1e38;
+      color: #a78bfa;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.3);
     }
 
     ul {
@@ -103,9 +126,10 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 12px 8px;
-      border-bottom: 1px solid #f0f0f0;
-      transition: background 0.1s;
+      padding: 13px 10px;
+      border-bottom: 1px solid #1e1e38;
+      transition: background 0.15s;
+      border-radius: 8px;
     }
 
     li:last-child {
@@ -113,50 +137,53 @@
     }
 
     li:hover {
-      background: #fafafa;
-      border-radius: 8px;
+      background: #1a1a30;
     }
 
     li input[type="checkbox"] {
       width: 18px;
       height: 18px;
-      accent-color: #4f6ef7;
+      accent-color: #a78bfa;
       cursor: pointer;
       flex-shrink: 0;
     }
 
     li span {
       flex: 1;
-      font-size: 1rem;
-      color: #333;
+      font-size: 0.95rem;
+      color: #c8c8e8;
       word-break: break-all;
+      transition: color 0.2s;
     }
 
     li.done span {
       text-decoration: line-through;
-      color: #aaa;
+      color: #3a3a5a;
     }
 
     li .delete-btn {
       background: none;
       border: none;
-      color: #ccc;
-      font-size: 1.2rem;
+      color: #3a3a5a;
+      font-size: 1rem;
       cursor: pointer;
-      padding: 2px 6px;
-      border-radius: 4px;
-      transition: color 0.2s;
+      padding: 3px 7px;
+      border-radius: 6px;
+      transition: color 0.2s, background 0.2s;
       line-height: 1;
     }
 
     li .delete-btn:hover {
-      color: #e55;
+      color: #f87171;
+      background: rgba(248, 113, 113, 0.1);
     }
 
     .footer {
       margin-top: 16px;
-      font-size: 0.85rem;
-      color: #aaa;
+      padding-top: 14px;
+      border-top: 1px solid #1e1e38;
+      font-size: 0.82rem;
+      color: #3a3a5a;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -165,21 +192,21 @@
     .footer button {
       background: none;
       border: none;
-      color: #aaa;
-      font-size: 0.85rem;
+      color: #3a3a5a;
+      font-size: 0.82rem;
       cursor: pointer;
-      text-decoration: underline;
+      transition: color 0.2s;
     }
 
     .footer button:hover {
-      color: #e55;
+      color: #f87171;
     }
 
     .empty {
       text-align: center;
-      color: #bbb;
+      color: #2e2e50;
       padding: 32px 0;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
     }
   </style>
 </head>
