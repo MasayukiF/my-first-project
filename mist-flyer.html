@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ミストシステム　学校グラウンド向けチラシ</title>
+  <style>
+    /* A4サイズ: 210mm × 297mm */
+    @page {
+      size: A4;
+      margin: 0;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'ヒラギノ角ゴ ProN', 'Meiryo', 'メイリオ', sans-serif;
+      background: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 20px;
+    }
+
+    .a4 {
+      width: 210mm;
+      min-height: 297mm;
+      background: white;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+
+    /* ヘッダー帯 */
+    .header {
+      background: linear-gradient(135deg, #0066cc 0%, #0099ff 100%);
+      color: white;
+      padding: 20px 28px 16px;
+      position: relative;
+    }
+
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -18px;
+      left: 0;
+      right: 0;
+      height: 36px;
+      background: linear-gradient(135deg, #0066cc 0%, #0099ff 100%);
+      clip-path: polygon(0 0, 100% 0, 100% 40%, 0 100%);
+      z-index: 1;
+    }
+
+    .header-top {
+      font-size: 11px;
+      letter-spacing: 2px;
+      opacity: 0.85;
+      margin-bottom: 6px;
+    }
+
+    .header-main {
+      font-size: 36px;
+      font-weight: 900;
+      letter-spacing: 4px;
+      line-height: 1.1;
+      text-shadow: 2px 2px 6px rgba(0,0,0,0.25);
+    }
+
+    .header-main span {
+      font-size: 24px;
+      letter-spacing: 2px;
+    }
+
+    .header-sub {
+      font-size: 13px;
+      margin-top: 8px;
+      opacity: 0.9;
+      letter-spacing: 1px;
+    }
+
+    /* キャッチコピー */
+    .catch {
+      margin: 36px 28px 0;
+      text-align: center;
+    }
+
+    .catch-main {
+      font-size: 22px;
+      font-weight: 900;
+      color: #0066cc;
+      line-height: 1.5;
+      letter-spacing: 1px;
+    }
+
+    .catch-main em {
+      font-style: normal;
+      color: #ff6600;
+      font-size: 28px;
+    }
+
+    .catch-sub {
+      font-size: 13px;
+      color: #555;
+      margin-top: 6px;
+    }
+
+    /* 熱中症リスク帯 */
+    .risk-bar {
+      margin: 18px 28px;
+      background: #fff3cd;
+      border: 2px solid #ff9900;
+      border-radius: 8px;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .risk-icon {
+      font-size: 32px;
+      flex-shrink: 0;
+    }
+
+    .risk-text {
+      font-size: 12.5px;
+      line-height: 1.7;
+      color: #333;
+    }
+
+    .risk-text strong {
+      color: #cc3300;
+      font-size: 14px;
+    }
+
+    /* 特徴3ポイント */
+    .features {
+      margin: 18px 28px;
+    }
+
+    .features-title {
+      font-size: 15px;
+      font-weight: 900;
+      color: #0066cc;
+      border-left: 5px solid #0066cc;
+      padding-left: 10px;
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .feature-card {
+      background: linear-gradient(160deg, #e8f4ff 0%, #f0f8ff 100%);
+      border: 1px solid #cce0ff;
+      border-radius: 10px;
+      padding: 14px 10px;
+      text-align: center;
+    }
+
+    .feature-num {
+      font-size: 11px;
+      color: #0066cc;
+      font-weight: 700;
+      letter-spacing: 2px;
+    }
+
+    .feature-icon {
+      font-size: 28px;
+      margin: 4px 0;
+    }
+
+    .feature-head {
+      font-size: 13.5px;
+      font-weight: 900;
+      color: #003d80;
+      line-height: 1.3;
+      margin-bottom: 4px;
+    }
+
+    .feature-body {
+      font-size: 10.5px;
+      color: #555;
+      line-height: 1.5;
+    }
+
+    /* 導入効果 */
+    .effect {
+      margin: 16px 28px;
+      background: #003d80;
+      border-radius: 10px;
+      padding: 14px 20px;
+      color: white;
+    }
+
+    .effect-title {
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .effect-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .effect-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .effect-item::before {
+      content: '✓';
+      color: #66ccff;
+      font-weight: 900;
+      flex-shrink: 0;
+      font-size: 14px;
+    }
+
+    /* 施工実績プレースホルダー */
+    .works {
+      margin: 16px 28px;
+    }
+
+    .works-title {
+      font-size: 15px;
+      font-weight: 900;
+      color: #0066cc;
+      border-left: 5px solid #0066cc;
+      padding-left: 10px;
+      margin-bottom: 10px;
+      letter-spacing: 1px;
+    }
+
+    .works-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .work-card {
+      border: 2px dashed #ccc;
+      border-radius: 8px;
+      height: 72px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #aaa;
+      font-size: 10px;
+      text-align: center;
+      background: #fafafa;
+    }
+
+    .work-card-icon {
+      font-size: 20px;
+      margin-bottom: 2px;
+    }
+
+    /* フロー */
+    .flow {
+      margin: 14px 28px;
+    }
+
+    .flow-title {
+      font-size: 15px;
+      font-weight: 900;
+      color: #0066cc;
+      border-left: 5px solid #0066cc;
+      padding-left: 10px;
+      margin-bottom: 10px;
+      letter-spacing: 1px;
+    }
+
+    .flow-steps {
+      display: flex;
+      align-items: center;
+      gap: 0;
+    }
+
+    .flow-step {
+      flex: 1;
+      text-align: center;
+      background: #e8f4ff;
+      border-radius: 8px;
+      padding: 8px 4px;
+      font-size: 10.5px;
+      color: #003d80;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    .flow-step span {
+      display: block;
+      font-size: 9px;
+      font-weight: 400;
+      color: #555;
+      margin-top: 2px;
+    }
+
+    .flow-arrow {
+      font-size: 16px;
+      color: #0066cc;
+      padding: 0 4px;
+      flex-shrink: 0;
+    }
+
+    /* CTA・問い合わせ */
+    .cta {
+      margin: 14px 28px 0;
+      background: linear-gradient(135deg, #ff6600 0%, #ff9900 100%);
+      border-radius: 12px;
+      padding: 16px 20px;
+      text-align: center;
+      color: white;
+    }
+
+    .cta-head {
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+
+    .cta-campaign {
+      font-size: 11px;
+      background: rgba(255,255,255,0.25);
+      border-radius: 4px;
+      display: inline-block;
+      padding: 2px 10px;
+      margin-bottom: 10px;
+    }
+
+    .cta-tel {
+      font-size: 30px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-shadow: 1px 1px 4px rgba(0,0,0,0.2);
+    }
+
+    .cta-tel-label {
+      font-size: 10px;
+      opacity: 0.9;
+      margin-bottom: 2px;
+    }
+
+    .cta-hours {
+      font-size: 10px;
+      opacity: 0.85;
+      margin-top: 4px;
+    }
+
+    /* フッター */
+    .footer {
+      margin-top: 14px;
+      background: #003d80;
+      padding: 10px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+    }
+
+    .footer-company {
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .footer-address {
+      font-size: 9.5px;
+      opacity: 0.8;
+      margin-top: 2px;
+    }
+
+    .footer-logo-placeholder {
+      width: 50px;
+      height: 30px;
+      border: 1px solid rgba(255,255,255,0.4);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8px;
+      opacity: 0.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="a4">
+
+    <!-- ヘッダー -->
+    <div class="header">
+      <div class="header-top">学校・教育施設向け　熱中症対策ソリューション</div>
+      <div class="header-main">グラウンドに<br><span>ミストシステム</span>を。</div>
+      <div class="header-sub">子どもたちの安全を守る、夏の熱中症対策工事</div>
+    </div>
+
+    <!-- キャッチコピー -->
+    <div class="catch">
+      <div class="catch-main">
+        灼熱のグラウンドを<em>快適</em>に。<br>
+        体感温度を<em>最大10℃</em>下げる。
+      </div>
+      <div class="catch-sub">微細なミストが空気を冷やし、子どもたちが安心して屋外活動できる環境をつくります</div>
+    </div>
+
+    <!-- 熱中症リスク帯 -->
+    <div class="risk-bar">
+      <div class="risk-icon">⚠️</div>
+      <div class="risk-text">
+        <strong>近年、学校での熱中症事故が急増しています。</strong><br>
+        体育の授業・部活動・運動会など、グラウンドでの屋外活動中のリスクを<br>ミスト冷却で大幅に低減できます。
+      </div>
+    </div>
+
+    <!-- 3つの特徴 -->
+    <div class="features">
+      <div class="features-title">ミストシステム　3つの特長</div>
+      <div class="features-grid">
+
+        <div class="feature-card">
+          <div class="feature-num">POINT 01</div>
+          <div class="feature-icon">❄️</div>
+          <div class="feature-head">強力な<br>冷却効果</div>
+          <div class="feature-body">超微細ミストが気化熱で周囲の温度を下げ、体感温度を最大10℃低減</div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-num">POINT 02</div>
+          <div class="feature-icon">💧</div>
+          <div class="feature-head">ベタつかない<br>快適な霧</div>
+          <div class="feature-body">高圧ポンプで生成した微細ミストはすぐ蒸発。服や体が濡れにくい設計</div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-num">POINT 03</div>
+          <div class="feature-icon">🔧</div>
+          <div class="feature-head">グラウンドに<br>合わせた設計</div>
+          <div class="feature-body">フェンス・観覧席・テント等に設置可能。学校の設備に合わせてご提案</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 導入効果 -->
+    <div class="effect">
+      <div class="effect-title">導入で期待できる効果</div>
+      <div class="effect-list">
+        <div class="effect-item">熱中症リスクを大幅に低減</div>
+        <div class="effect-item">体育・部活の屋外活動が安全に</div>
+        <div class="effect-item">運動会・行事での保護者評価向上</div>
+        <div class="effect-item">教職員・生徒のパフォーマンス維持</div>
+        <div class="effect-item">シーズン終了後の取外し・保管も対応</div>
+        <div class="effect-item">省エネ・エアコン不要で低ランニングコスト</div>
+      </div>
+    </div>
+
+    <!-- 施工実績 (プレースホルダー) -->
+    <div class="works">
+      <div class="works-title">施工実績　※写真は後日掲載予定</div>
+      <div class="works-grid">
+        <div class="work-card">
+          <div class="work-card-icon">📷</div>
+          施工写真①<br>（学校グラウンド）
+        </div>
+        <div class="work-card">
+          <div class="work-card-icon">📷</div>
+          施工写真②<br>（フェンス設置例）
+        </div>
+        <div class="work-card">
+          <div class="work-card-icon">📷</div>
+          施工写真③<br>（観覧席・テント）
+        </div>
+      </div>
+    </div>
+
+    <!-- ご依頼の流れ -->
+    <div class="flow">
+      <div class="flow-title">ご依頼の流れ</div>
+      <div class="flow-steps">
+        <div class="flow-step">📞 お問い合わせ<span>電話・メールOK</span></div>
+        <div class="flow-arrow">▶</div>
+        <div class="flow-step">🏫 現地調査<span>無料でお伺い</span></div>
+        <div class="flow-arrow">▶</div>
+        <div class="flow-step">📋 御見積<span>ご提出・ご検討</span></div>
+        <div class="flow-arrow">▶</div>
+        <div class="flow-step">🔨 工事・設置<span>スピード対応</span></div>
+        <div class="flow-arrow">▶</div>
+        <div class="flow-step">✅ アフター<span>保証・メンテ</span></div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta">
+      <div class="cta-head">夏本番前に！今すぐご相談ください</div>
+      <div class="cta-campaign">📅 夏前お申し込みで　現地調査・見積無料</div>
+      <div class="cta-tel-label">お気軽にお電話ください</div>
+      <div class="cta-tel">000-0000-0000</div>
+      <div class="cta-hours">受付時間：平日 8:30〜17:30　　メール：info@example.co.jp</div>
+    </div>
+
+    <!-- フッター -->
+    <div class="footer">
+      <div>
+        <div class="footer-company">株式会社　○○工業</div>
+        <div class="footer-address">〒000-0000　○○県○○市○○町0-0-0　　TEL：000-0000-0000</div>
+      </div>
+      <div class="footer-logo-placeholder">LOGO</div>
+    </div>
+
+  </div>
+</body>
+</html>
