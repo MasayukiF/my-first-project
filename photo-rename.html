@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>現場写真リネームツール</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0d0d14;
+      color: #c8c8e8;
+      min-height: 100vh;
+      padding: 24px 16px;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #a78bfa, #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      font-size: 0.82rem;
+      color: #4a4a6a;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: #16162a;
+      border: 1px solid #2a2a45;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #7c5cfc;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 14px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 480px) {
+      .form-grid { grid-template-columns: 1fr; }
+    }
+
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+
+    label {
+      font-size: 0.8rem;
+      color: #6a6a9a;
+    }
+
+    input, select {
+      background: #0d0d14;
+      border: 1.5px solid #2a2a45;
+      border-radius: 8px;
+      color: #e2e2f0;
+      font-size: 0.9rem;
+      padding: 9px 12px;
+      outline: none;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+
+    input:focus, select:focus { border-color: #7c5cfc; }
+    input::placeholder { color: #3a3a5a; }
+
+    select option { background: #16162a; }
+
+    /* Drop Zone */
+    .drop-zone {
+      border: 2px dashed #2a2a45;
+      border-radius: 12px;
+      padding: 36px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #0d0d14;
+    }
+
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: #7c5cfc;
+      background: rgba(124, 92, 252, 0.05);
+    }
+
+    .drop-icon { font-size: 2.4rem; margin-bottom: 10px; }
+
+    .drop-text {
+      font-size: 0.9rem;
+      color: #4a4a6a;
+      line-height: 1.6;
+    }
+
+    .drop-text span {
+      color: #a78bfa;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    #file-input { display: none; }
+
+    /* File count badge */
+    .badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #7c5cfc, #5b8dee);
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-left: 8px;
+    }
+
+    /* Preview table */
+    .preview-wrap {
+      max-height: 320px;
+      overflow-y: auto;
+      border-radius: 8px;
+      border: 1px solid #1e1e38;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+
+    thead th {
+      background: #1a1a30;
+      padding: 9px 12px;
+      text-align: left;
+      color: #6a6a9a;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+    }
+
+    tbody tr { border-bottom: 1px solid #1a1a30; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #1a1a30; }
+
+    td {
+      padding: 8px 12px;
+      vertical-align: middle;
+    }
+
+    .old-name { color: #4a4a6a; }
+
+    .new-name { color: #a78bfa; font-weight: 500; }
+
+    .arrow { color: #3a3a5a; text-align: center; width: 24px; }
+
+    .thumb {
+      width: 36px;
+      height: 36px;
+      object-fit: cover;
+      border-radius: 4px;
+      border: 1px solid #2a2a45;
+    }
+
+    /* Buttons */
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 11px 22px;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #7c5cfc, #5b8dee);
+      color: #fff;
+      flex: 1;
+    }
+
+    .btn-secondary {
+      background: #1e1e38;
+      color: #a78bfa;
+      border: 1px solid #2a2a45;
+    }
+
+    .btn:hover:not(:disabled) { opacity: 0.85; }
+
+    /* Progress */
+    .progress-wrap {
+      display: none;
+      margin-top: 12px;
+    }
+
+    .progress-bar-bg {
+      background: #1a1a30;
+      border-radius: 99px;
+      height: 6px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #7c5cfc, #60a5fa);
+      border-radius: 99px;
+      width: 0%;
+      transition: width 0.3s;
+    }
+
+    .progress-text {
+      font-size: 0.78rem;
+      color: #4a4a6a;
+      margin-top: 6px;
+      text-align: center;
+    }
+
+    /* Empty state */
+    .empty {
+      text-align: center;
+      color: #2e2e50;
+      padding: 24px;
+      font-size: 0.85rem;
+    }
+
+    /* Format preview */
+    .format-preview {
+      background: #0d0d14;
+      border: 1px solid #2a2a45;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.8rem;
+      color: #60a5fa;
+      font-family: monospace;
+      margin-top: 8px;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <h1>現場写真リネームツール</h1>
+  <p class="subtitle">協電機工株式会社 ／ ドラッグ&ドロップで一括リネーム・ZIP保存</p>
+
+  <!-- 設定 -->
+  <div class="card">
+    <div class="card-title">設定</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>工事名（必須）</label>
+        <input type="text" id="kojiName" placeholder="例：西消防署小島出張所" oninput="updatePreview()">
+      </div>
+      <div class="form-group">
+        <label>日付</label>
+        <input type="date" id="dateInput" oninput="updatePreview()">
+      </div>
+      <div class="form-group">
+        <label>担当者名（任意）</label>
+        <input type="text" id="staffName" placeholder="例：下田" oninput="updatePreview()">
+      </div>
+      <div class="form-group">
+        <label>カテゴリ（任意）</label>
+        <select id="category" onchange="updatePreview()">
+          <option value="">なし</option>
+          <option value="着工前">着工前</option>
+          <option value="施工中">施工中</option>
+          <option value="完成">完成</option>
+          <option value="検査">検査</option>
+          <option value="不具合">不具合</option>
+        </select>
+      </div>
+      <div class="form-group full">
+        <label>ファイル名プレビュー</label>
+        <div class="format-preview" id="formatPreview">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ファイル選択 -->
+  <div class="card">
+    <div class="card-title">
+      写真を選択
+      <span class="badge" id="fileCount" style="display:none">0枚</span>
+    </div>
+    <div class="drop-zone" id="dropZone">
+      <div class="drop-icon">📸</div>
+      <div class="drop-text">
+        ここに写真をドラッグ&ドロップ<br>
+        または<span onclick="document.getElementById('file-input').click()">クリックして選択</span>
+      </div>
+    </div>
+    <input type="file" id="file-input" multiple accept="image/*">
+  </div>
+
+  <!-- プレビュー -->
+  <div class="card" id="previewCard" style="display:none">
+    <div class="card-title">リネームプレビュー</div>
+    <div class="preview-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:44px">画像</th>
+            <th>元のファイル名</th>
+            <th class="arrow"></th>
+            <th>新しいファイル名</th>
+          </tr>
+        </thead>
+        <tbody id="previewBody">
+          <tr><td colspan="4" class="empty">ファイルを選択してください</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ダウンロード -->
+  <div class="card" id="downloadCard" style="display:none">
+    <div class="card-title">ダウンロード</div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="downloadBtn" onclick="downloadZip()">
+        ZIPでまとめてダウンロード
+      </button>
+      <button class="btn btn-secondary" onclick="clearAll()">リセット</button>
+    </div>
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-bar-bg">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+      <div class="progress-text" id="progressText">処理中...</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let files = [];
+
+  // 今日の日付をデフォルト設定
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  document.getElementById('dateInput').value = `${yyyy}-${mm}-${dd}`;
+
+  updatePreview();
+
+  // ドラッグ&ドロップ
+  const dropZone = document.getElementById('dropZone');
+
+  dropZone.addEventListener('dragover', e => {
+    e.preventDefault();
+    dropZone.classList.add('drag-over');
+  });
+
+  dropZone.addEventListener('dragleave', () => {
+    dropZone.classList.remove('drag-over');
+  });
+
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    addFiles([...e.dataTransfer.files].filter(f => f.type.startsWith('image/')));
+  });
+
+  document.getElementById('file-input').addEventListener('change', e => {
+    addFiles([...e.target.files]);
+    e.target.value = '';
+  });
+
+  function addFiles(newFiles) {
+    files = [...files, ...newFiles];
+    renderPreview();
+  }
+
+  function buildNewName(index, ext) {
+    const dateVal = document.getElementById('dateInput').value.replace(/-/g, '');
+    const koji = document.getElementById('kojiName').value.trim() || '工事名未入力';
+    const staff = document.getElementById('staffName').value.trim();
+    const cat = document.getElementById('category').value;
+
+    const parts = [dateVal, koji];
+    if (staff) parts.push(staff);
+    if (cat) parts.push(cat);
+    parts.push(String(index + 1).padStart(3, '0'));
+
+    return parts.join('_') + ext;
+  }
+
+  function updatePreview() {
+    const dateVal = document.getElementById('dateInput').value.replace(/-/g, '') || 'YYYYMMDD';
+    const koji = document.getElementById('kojiName').value.trim() || '工事名';
+    const staff = document.getElementById('staffName').value.trim();
+    const cat = document.getElementById('category').value;
+
+    const parts = [dateVal, koji];
+    if (staff) parts.push(staff);
+    if (cat) parts.push(cat);
+    parts.push('001');
+
+    document.getElementById('formatPreview').textContent = parts.join('_') + '.jpg';
+    renderPreview();
+  }
+
+  function renderPreview() {
+    const tbody = document.getElementById('previewBody');
+    const badge = document.getElementById('fileCount');
+    const previewCard = document.getElementById('previewCard');
+    const downloadCard = document.getElementById('downloadCard');
+
+    if (files.length === 0) {
+      previewCard.style.display = 'none';
+      downloadCard.style.display = 'none';
+      badge.style.display = 'none';
+      return;
+    }
+
+    badge.style.display = 'inline-block';
+    badge.textContent = `${files.length}枚`;
+    previewCard.style.display = 'block';
+    downloadCard.style.display = 'block';
+
+    tbody.innerHTML = files.map((f, i) => {
+      const ext = f.name.includes('.') ? '.' + f.name.split('.').pop().toLowerCase() : '';
+      const newName = buildNewName(i, ext);
+      const url = URL.createObjectURL(f);
+      return `
+        <tr>
+          <td><img class="thumb" src="${url}" alt=""></td>
+          <td class="old-name">${escHtml(f.name)}</td>
+          <td class="arrow">→</td>
+          <td class="new-name">${escHtml(newName)}</td>
+        </tr>`;
+    }).join('');
+  }
+
+  async function downloadZip() {
+    if (files.length === 0) return;
+
+    const btn = document.getElementById('downloadBtn');
+    const progressWrap = document.getElementById('progressWrap');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+
+    btn.disabled = true;
+    progressWrap.style.display = 'block';
+
+    const zip = new JSZip();
+    const folder = zip.folder('renamed_photos');
+
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      const ext = f.name.includes('.') ? '.' + f.name.split('.').pop().toLowerCase() : '';
+      const newName = buildNewName(i, ext);
+      const data = await f.arrayBuffer();
+      folder.file(newName, data);
+
+      const pct = Math.round(((i + 1) / files.length) * 80);
+      progressBar.style.width = pct + '%';
+      progressText.textContent = `処理中... ${i + 1} / ${files.length}枚`;
+    }
+
+    progressText.textContent = 'ZIP作成中...';
+    progressBar.style.width = '90%';
+
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const dateVal = document.getElementById('dateInput').value.replace(/-/g, '');
+    const koji = (document.getElementById('kojiName').value.trim() || '工事名');
+    const zipName = `${dateVal}_${koji}_写真.zip`;
+
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = zipName;
+    a.click();
+
+    progressBar.style.width = '100%';
+    progressText.textContent = `完了！ ${files.length}枚をZIPに保存しました`;
+    btn.disabled = false;
+  }
+
+  function clearAll() {
+    files = [];
+    document.getElementById('kojiName').value = '';
+    document.getElementById('staffName').value = '';
+    document.getElementById('category').value = '';
+    renderPreview();
+    updatePreview();
+    document.getElementById('progressWrap').style.display = 'none';
+    document.getElementById('progressBar').style.width = '0%';
+  }
+
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+</script>
+</body>
+</html>
