@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>将行 | 自己紹介</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --gold: #c9a84c;
+      --dark: #1a1a2e;
+      --mid: #16213e;
+      --light: #e8e0d0;
+      --accent: #0f3460;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background-color: var(--dark);
+      color: var(--light);
+      font-family: 'Noto Serif JP', serif;
+      overflow-x: hidden;
+    }
+
+    /* ===== HERO ===== */
+    .hero {
+      position: relative;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 50%, rgba(201,168,76,0.15) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 20%, rgba(15,52,96,0.4) 0%, transparent 50%);
+    }
+
+    .particles {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .particle {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: var(--gold);
+      border-radius: 50%;
+      animation: float linear infinite;
+      opacity: 0;
+    }
+
+    @keyframes float {
+      0%   { transform: translateY(100vh) scale(0); opacity: 0; }
+      10%  { opacity: 0.8; }
+      90%  { opacity: 0.4; }
+      100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-en {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(0.8rem, 2vw, 1.1rem);
+      letter-spacing: 0.4em;
+      color: var(--gold);
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+      animation: fadeUp 1s ease both;
+    }
+
+    .hero-name {
+      font-size: clamp(4rem, 12vw, 9rem);
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: 0.1em;
+      background: linear-gradient(135deg, #fff 30%, var(--gold) 70%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: fadeUp 1s 0.2s ease both;
+    }
+
+    .hero-title {
+      margin-top: 1.5rem;
+      font-size: clamp(0.9rem, 2.5vw, 1.3rem);
+      font-weight: 300;
+      letter-spacing: 0.25em;
+      color: rgba(232,224,208,0.75);
+      animation: fadeUp 1s 0.4s ease both;
+    }
+
+    .hero-line {
+      width: 80px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      margin: 2rem auto;
+      animation: fadeUp 1s 0.6s ease both;
+    }
+
+    .scroll-hint {
+      position: absolute;
+      bottom: 2.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      color: rgba(232,224,208,0.4);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .scroll-hint::after {
+      content: '';
+      display: block;
+      width: 1px;
+      height: 40px;
+      background: linear-gradient(to bottom, var(--gold), transparent);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; transform: translateX(-50%) translateY(0); }
+      50%       { opacity: 1;   transform: translateX(-50%) translateY(6px); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== SECTION BASE ===== */
+    section {
+      padding: 6rem 2rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.4em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+
+    .section-title {
+      font-size: clamp(1.8rem, 5vw, 3rem);
+      font-weight: 700;
+      margin-bottom: 2.5rem;
+      background: linear-gradient(135deg, #fff, var(--gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .divider {
+      width: 60px;
+      height: 2px;
+      background: linear-gradient(90deg, var(--gold), transparent);
+      margin-bottom: 3rem;
+    }
+
+    /* ===== ABOUT ===== */
+    .about-text {
+      font-size: clamp(1rem, 2.5vw, 1.2rem);
+      line-height: 2.2;
+      font-weight: 300;
+      color: rgba(232,224,208,0.85);
+      border-left: 2px solid var(--gold);
+      padding-left: 2rem;
+    }
+
+    /* ===== LOVES ===== */
+    .loves-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .love-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(201,168,76,0.2);
+      border-radius: 16px;
+      padding: 2rem 1.5rem;
+      text-align: center;
+      transition: transform 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+      cursor: default;
+    }
+
+    .love-card:hover {
+      transform: translateY(-6px);
+      border-color: var(--gold);
+      background: rgba(201,168,76,0.07);
+    }
+
+    .love-icon {
+      font-size: 2.8rem;
+      margin-bottom: 0.8rem;
+      display: block;
+    }
+
+    .love-name {
+      font-size: 1rem;
+      letter-spacing: 0.15em;
+      color: var(--gold);
+      margin-bottom: 0.4rem;
+    }
+
+    .love-desc {
+      font-size: 0.8rem;
+      color: rgba(232,224,208,0.5);
+      font-weight: 300;
+    }
+
+    /* ===== PHILOSOPHY ===== */
+    .philosophy {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(201,168,76,0.15);
+      border-radius: 24px;
+      padding: 4rem 3rem;
+      text-align: center;
+    }
+
+    .quote-mark {
+      font-family: 'Playfair Display', serif;
+      font-size: 5rem;
+      color: var(--gold);
+      line-height: 0.5;
+      opacity: 0.4;
+      display: block;
+      margin-bottom: 1.5rem;
+    }
+
+    .quote-text {
+      font-size: clamp(1.1rem, 3vw, 1.6rem);
+      font-weight: 300;
+      line-height: 2;
+      color: rgba(232,224,208,0.9);
+    }
+
+    /* ===== FOOTER ===== */
+    footer {
+      text-align: center;
+      padding: 3rem 2rem;
+      border-top: 1px solid rgba(201,168,76,0.15);
+      font-size: 0.8rem;
+      color: rgba(232,224,208,0.3);
+      letter-spacing: 0.15em;
+    }
+
+    /* ===== REVEAL ANIMATION ===== */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="particles" id="particles"></div>
+    <div class="hero-content">
+      <p class="hero-en">Nice to meet you</p>
+      <h1 class="hero-name">将行</h1>
+      <div class="hero-line"></div>
+      <p class="hero-title">設備会社 代表取締役　&nbsp;|&nbsp;　Masayuki</p>
+    </div>
+    <div class="scroll-hint">SCROLL</div>
+  </div>
+
+  <!-- ABOUT -->
+  <section class="reveal">
+    <p class="section-label">About Me</p>
+    <h2 class="section-title">自己紹介</h2>
+    <div class="divider"></div>
+    <p class="about-text">
+      設備会社の代表として、日々チームと共に走り続けています。<br>
+      最新テクノロジーへの探求心と、生き物たちへの深い愛情、<br>
+      そして家族との時間を何より大切にしながら、<br>
+      仕事とプライベートの両方を全力で楽しんでいます。
+    </p>
+  </section>
+
+  <!-- LOVES -->
+  <section class="reveal">
+    <p class="section-label">Passions</p>
+    <h2 class="section-title">好きなもの</h2>
+    <div class="divider"></div>
+    <div class="loves-grid">
+      <div class="love-card">
+        <span class="love-icon">🤖</span>
+        <p class="love-name">AI</p>
+        <p class="love-desc">最先端の技術に<br>ワクワクしっぱなし</p>
+      </div>
+      <div class="love-card">
+        <span class="love-icon">🐴</span>
+        <p class="love-name">馬</p>
+        <p class="love-desc">その力強さと<br>美しさに魅了される</p>
+      </div>
+      <div class="love-card">
+        <span class="love-icon">🐰</span>
+        <p class="love-name">うさぎ</p>
+        <p class="love-desc">ふわふわの存在感が<br>たまらない</p>
+      </div>
+      <div class="love-card">
+        <span class="love-icon">🐦</span>
+        <p class="love-name">文鳥</p>
+        <p class="love-desc">小さな命の<br>愛らしさに癒される</p>
+      </div>
+      <div class="love-card">
+        <span class="love-icon">✈️</span>
+        <p class="love-name">旅行</p>
+        <p class="love-desc">知らない景色が<br>視野を広げてくれる</p>
+      </div>
+      <div class="love-card">
+        <span class="love-icon">🥃</span>
+        <p class="love-name">お酒</p>
+        <p class="love-desc">一杯で繋がる<br>人との縁が好き</p>
+      </div>
+      <div class="love-card" style="grid-column: 1 / -1; max-width: 280px; margin: 0 auto;">
+        <span class="love-icon">👨‍👩‍👧‍👦</span>
+        <p class="love-name">家族</p>
+        <p class="love-desc">すべての原動力。<br>家族のために、家族と共に。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PHILOSOPHY -->
+  <section class="reveal">
+    <p class="section-label">Philosophy</p>
+    <h2 class="section-title">大切にしていること</h2>
+    <div class="divider"></div>
+    <div class="philosophy">
+      <span class="quote-mark">"</span>
+      <p class="quote-text">
+        仕事も遊びも、出会うすべてに<br>
+        本気で向き合う。<br>
+        人・動物・技術——どんな存在とも<br>
+        真剣に関わることで、<br>
+        人生はもっと豊かになる。
+      </p>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>&copy; 2026 &nbsp;将行 &nbsp;|&nbsp; Masayuki</p>
+  </footer>
+
+  <script>
+    // パーティクル生成
+    const container = document.getElementById('particles');
+    for (let i = 0; i < 40; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.left = Math.random() * 100 + '%';
+      p.style.width = p.style.height = (Math.random() * 3 + 1) + 'px';
+      p.style.animationDuration = (Math.random() * 15 + 10) + 's';
+      p.style.animationDelay = (Math.random() * 15) + 's';
+      container.appendChild(p);
+    }
+
+    // スクロール時にフェードイン
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          observer.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.15 });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>
