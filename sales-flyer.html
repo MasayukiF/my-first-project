@@ -28,6 +28,15 @@
       min-height: 100vh;
       display: flex;
       justify-content: center;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* 全要素に色印刷を強制（背景・グラデーション・枠線すべて） */
+    *, *::before, *::after {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      color-adjust: exact !important;
     }
 
     .flyer {
@@ -441,7 +450,13 @@
       margin: 0;
     }
     @media print {
-      body { background: #fff; padding: 0; margin: 0; }
+      html, body {
+        background: #fff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
       .flyer {
         box-shadow: none;
         width: 210mm;
@@ -451,6 +466,19 @@
         page-break-inside: avoid;
       }
       .alert-badge { animation: none; }
+
+      /* 印刷時、背景色・グラデーションを必ず出力する */
+      .hero, .hero::before, .hero::after,
+      .compare-box, .compare-now, .compare-future,
+      .compare-label, .compare-diff,
+      .checklist, .strength, .strengths,
+      .cta, .cta::before,
+      .alert-badge, .section-title .num,
+      .contact-tel .label, .info-box {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
     }
   </style>
 </head>
