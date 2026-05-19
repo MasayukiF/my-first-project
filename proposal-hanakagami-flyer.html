@@ -310,104 +310,101 @@
       font-weight: 800;
     }
 
-    /* ========== 体制図 ========== */
-    .scheme {
-      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-      color: #fff;
-      border-radius: 6px;
-      padding: 9px 14px;
-      position: relative;
-      overflow: hidden;
-    }
-    .scheme-head {
-      font-size: 12px;
-      font-weight: 900;
-      text-align: center;
-      color: var(--gold-light);
-      margin-bottom: 6px;
-      letter-spacing: 1px;
-    }
-    .scheme-row {
+    /* ========== お任せ範囲（4アイコン） ========== */
+    .scope {
       display: grid;
-      grid-template-columns: 1fr 24px 1fr 24px 1fr;
-      gap: 0;
-      align-items: stretch;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
     }
-    .scheme-node {
-      background: rgba(255,255,255,0.1);
-      border: 1px solid rgba(243,215,122,0.5);
+    .scope-card {
+      background: linear-gradient(180deg, #ffffff 0%, var(--warm) 100%);
+      border: 1px solid var(--gold-light);
+      border-top: 3px solid var(--gold);
       border-radius: 4px;
-      padding: 6px 4px;
+      padding: 7px 6px 8px;
       text-align: center;
     }
-    .scheme-node.main {
-      background: var(--gold);
-      color: var(--primary-dark);
-      border-color: var(--gold-light);
+    .scope-icon {
+      font-size: 22px;
+      line-height: 1;
+      margin-bottom: 3px;
     }
-    .scheme-node .role {
-      font-size: 9px;
-      font-weight: 700;
-      opacity: 0.85;
-      letter-spacing: 1px;
-    }
-    .scheme-node .name {
+    .scope-title {
       font-size: 11.5px;
       font-weight: 900;
-      margin-top: 2px;
-      line-height: 1.2;
+      color: var(--primary);
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
     }
-    .scheme-node .desc {
-      font-size: 8.5px;
-      margin-top: 2px;
-      opacity: 0.85;
-      line-height: 1.3;
-    }
-    .scheme-arrow {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--gold-light);
-      font-size: 18px;
-      font-weight: 900;
-    }
-    .scheme-foot {
+    .scope-desc {
       font-size: 9.5px;
+      line-height: 1.4;
+      color: var(--text);
+    }
+    .scope-foot {
+      font-size: 10px;
       text-align: center;
-      margin-top: 6px;
-      opacity: 0.95;
+      margin-top: 5px;
+      color: var(--muted);
+    }
+    .scope-foot strong {
+      color: var(--primary);
+      background: linear-gradient(transparent 60%, var(--gold-light) 60%);
+      padding: 0 3px;
     }
 
-    /* ========== シャチョーひと言 ========== */
-    .ceo {
+    /* ========== こだわった3点 ========== */
+    .kodawari {
       background: var(--warm);
       border-top: 2px solid var(--gold);
       border-bottom: 2px solid var(--gold);
-      padding: 8px 14px;
+      padding: 9px 14px 10px;
       margin-top: 2px;
-      font-size: 10.5px;
-      line-height: 1.55;
-      color: var(--text);
+    }
+    .kodawari-head {
+      font-size: 12px;
+      font-weight: 900;
+      color: var(--primary);
+      text-align: center;
+      letter-spacing: 1.5px;
+      margin-bottom: 6px;
       font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;
     }
-    .ceo-head {
-      font-size: 11.5px;
+    .kodawari-head .gold {
+      color: var(--gold);
+      font-size: 14px;
+    }
+    .kodawari-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .kodawari-item {
+      text-align: center;
+      padding: 0 4px;
+    }
+    .kodawari-item + .kodawari-item {
+      border-left: 1px dashed var(--gold-light);
+    }
+    .kodawari-no {
+      font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+      font-size: 18px;
+      color: var(--gold);
       font-weight: 700;
+      line-height: 1;
+      margin-bottom: 2px;
+    }
+    .kodawari-title {
+      font-size: 11.5px;
+      font-weight: 900;
       color: var(--primary);
       margin-bottom: 3px;
-      letter-spacing: 1px;
+      line-height: 1.3;
     }
-    .ceo-sign {
-      text-align: right;
-      font-size: 11px;
-      color: var(--primary);
-      font-weight: 700;
-      margin-top: 3px;
-      letter-spacing: 1px;
-    }
-    .ceo-sign .name {
-      font-size: 13px;
-      margin-left: 2px;
+    .kodawari-body {
+      font-size: 9.5px;
+      line-height: 1.45;
+      color: var(--text);
     }
 
     /* ========== CTA／連絡先 ========== */
@@ -635,45 +632,58 @@
       </div>
     </div>
 
-    <!-- ========== 3. 体制図 ========== -->
+    <!-- ========== 3. お任せ範囲 ========== -->
     <div class="section-title">
       <span class="bar"></span>
-      ご担当体制 ／ 元請けは協電機工です
-      <span class="en">TEAM</span>
+      お任せ範囲 ／ 私どもにて一括してお引き受けいたします
+      <span class="en">SCOPE</span>
     </div>
-    <div class="scheme">
-      <div class="scheme-head">花鏡様の窓口を、協電機工が一本化します</div>
-      <div class="scheme-row">
-        <div class="scheme-node">
-          <div class="role">お客様</div>
-          <div class="name">杏仁会 様</div>
-          <div class="desc">花鏡 空調更新</div>
-        </div>
-        <div class="scheme-arrow">▶</div>
-        <div class="scheme-node main">
-          <div class="role">元請 ／ 一括窓口</div>
-          <div class="name">協電機工 株式会社</div>
-          <div class="desc">設計・施工管理・補助金代行</div>
-        </div>
-        <div class="scheme-arrow">▶</div>
-        <div class="scheme-node">
-          <div class="role">機器・遠隔保守</div>
-          <div class="name">西部ガスグループ</div>
-          <div class="desc">GHPエグゼアⅢ／スカイリモート</div>
-        </div>
+    <div class="scope">
+      <div class="scope-card">
+        <div class="scope-icon">🛠️</div>
+        <div class="scope-title">機器選定・調達</div>
+        <div class="scope-desc">最新エグゼアⅢを<br>最適容量でご提案</div>
       </div>
-      <div class="scheme-foot">
-        ご連絡先は<strong style="color:var(--gold-light);">協電機工 一本</strong>でOK。機器調達・施工・申請・保守まで、私どもが責任を持って取り纏めます。
+      <div class="scope-card">
+        <div class="scope-icon">📑</div>
+        <div class="scope-title">補助金 申請代行</div>
+        <div class="scope-desc">公募〜申請〜<br>実績報告まで一式</div>
       </div>
+      <div class="scope-card">
+        <div class="scope-icon">🏗️</div>
+        <div class="scope-title">設計・施工管理</div>
+        <div class="scope-desc">既設活用設計／<br>運営継続に配慮</div>
+      </div>
+      <div class="scope-card">
+        <div class="scope-icon">🔧</div>
+        <div class="scope-title">13年フルメンテ</div>
+        <div class="scope-desc">遠隔監視＋<br>定期点検＋修理</div>
+      </div>
+    </div>
+    <div class="scope-foot">
+      お客様にお願いするのは <strong>ご決裁</strong> と <strong>お立会い</strong> のみ。あとはぜんぶ、私どもにて承ります。
     </div>
 
-    <!-- ========== シャチョーひと言 ========== -->
-    <div class="ceo">
-      <div class="ceo-head">藤本社長より、ひと言</div>
-      花鏡さんで暮らされる皆さま、そしてそこで働かれるスタッフの皆さまにとって、空調は「もう一つの安心」です。<br>
-      今回は<strong style="color:var(--gold); font-weight:700;">ガスのプロである西部ガスグループ</strong>と組み、<strong style="color:var(--gold); font-weight:700;">建築設備のプロである私ども協電機工</strong>が元請けとして取り纏める、現時点で最良の組み合わせをお持ちいたしました。<br>
-      添付の根拠資料には数字をぎっしり詰めましたが、私どもの想いは1つ。<u>「健康で快適な住環境」を、本気で、ずっと。</u>
-      <div class="ceo-sign">― 協電機工 株式会社　代表取締役　<span class="name">藤本 将行</span></div>
+    <!-- ========== こだわった3点 ========== -->
+    <div class="kodawari">
+      <div class="kodawari-head">花鏡様のために、<span class="gold">私どもがこだわった3点</span></div>
+      <div class="kodawari-grid">
+        <div class="kodawari-item">
+          <div class="kodawari-no">一</div>
+          <div class="kodawari-title">ご入居者様の「眠り」を最優先</div>
+          <div class="kodawari-body">最新エグゼアⅢの静音・低振動性能で、夜間の安寧を守ります。</div>
+        </div>
+        <div class="kodawari-item">
+          <div class="kodawari-no">二</div>
+          <div class="kodawari-title">既設活用で、最短の工期</div>
+          <div class="kodawari-body">配管・受変電を活かす設計で、運営を止めずに更新いたします。</div>
+        </div>
+        <div class="kodawari-item">
+          <div class="kodawari-no">三</div>
+          <div class="kodawari-title">13年、ずっと安心の保守体制</div>
+          <div class="kodawari-body">遠隔監視で予兆検知、突発的な修繕費の発生を抑えます。</div>
+        </div>
+      </div>
     </div>
 
     <!-- ========== CTA／連絡先 ========== -->
