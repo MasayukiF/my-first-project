@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>サ高住 花鏡様 空調更新計画ご提案 表紙（和風・癒し）｜協電機工</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #1a3f2e;
+      --primary-dark: #0d2b1c;
+      --accent: #4a8f6f;
+      --gold: #b8862f;
+      --gold-light: #e8c878;
+      --warm: #f5f1e3;
+      --bg: #edf2eb;
+      --card: #ffffff;
+      --border: #c9d6c3;
+      --text: #1a2e21;
+      --muted: #5a6b5e;
+      --soft: #dde9d6;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Hiragino Mincho ProN', 'Yu Mincho', 'MS Mincho', serif;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    *, *::before, *::after {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      color-adjust: exact !important;
+    }
+
+    .flyer {
+      width: 210mm;
+      height: 297mm;
+      background: #fff;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+      padding: 9mm 10mm 7mm;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      font-family: 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', sans-serif;
+    }
+
+    /* ========== 上部装飾ライン ========== */
+    .top-line {
+      height: 4px;
+      background: linear-gradient(90deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%);
+      margin: -9mm -10mm 5mm;
+    }
+
+    /* ========== 宛先ヘッダー ========== */
+    .head-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 8px;
+      padding-bottom: 5px;
+      border-bottom: 1.5px solid var(--primary);
+    }
+    .to-block .to-prefix {
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 2px;
+      margin-bottom: 1px;
+    }
+    .to-block .to-name {
+      font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+      font-size: 18px;
+      color: var(--primary);
+      font-weight: 700;
+      letter-spacing: 2px;
+    }
+    .to-block .to-name .sama {
+      font-size: 14px;
+      margin-left: 4px;
+      color: var(--gold);
+    }
+    .to-block .to-property {
+      font-size: 11px;
+      color: var(--text);
+      margin-top: 3px;
+      letter-spacing: 0.5px;
+    }
+    .from-block {
+      text-align: right;
+      font-size: 10px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .from-block .date {
+      font-size: 11px;
+      color: var(--primary);
+      font-weight: 700;
+    }
+    .from-block .company {
+      font-size: 13px;
+      color: var(--primary);
+      font-weight: 900;
+      letter-spacing: 1px;
+      margin-top: 2px;
+    }
+
+    /* ========== ヒーロー（品良く） ========== */
+    .hero {
+      position: relative;
+      background:
+        linear-gradient(135deg, rgba(10,44,92,0.94) 0%, rgba(10,44,92,0.88) 50%, rgba(21,101,168,0.85) 100%),
+        radial-gradient(circle at 80% 30%, rgba(243,215,122,0.3) 0%, transparent 50%);
+      background-color: var(--primary);
+      border-radius: 8px;
+      padding: 14px 18px 14px;
+      margin-bottom: 8px;
+      overflow: hidden;
+      border: 1px solid var(--gold);
+    }
+    .hero::before {
+      content: "";
+      position: absolute;
+      top: 8px; left: 8px;
+      width: 30px; height: 30px;
+      border-top: 2px solid var(--gold);
+      border-left: 2px solid var(--gold);
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      bottom: 8px; right: 8px;
+      width: 30px; height: 30px;
+      border-bottom: 2px solid var(--gold);
+      border-right: 2px solid var(--gold);
+    }
+    .hero-badge {
+      display: inline-block;
+      color: var(--gold-light);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 14px;
+      border: 1px solid var(--gold);
+      border-radius: 2px;
+      letter-spacing: 4px;
+      margin-bottom: 6px;
+    }
+    .hero-title {
+      color: #fff;
+      font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+      font-size: 28px;
+      font-weight: 700;
+      text-align: center;
+      line-height: 1.35;
+      letter-spacing: 3px;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .hero-title .gold {
+      color: var(--gold-light);
+    }
+    .hero-sub {
+      color: #fff;
+      font-size: 13px;
+      font-weight: 500;
+      text-align: center;
+      margin-top: 8px;
+      letter-spacing: 1.5px;
+      opacity: 0.95;
+    }
+    .hero-tag {
+      color: var(--gold-light);
+      font-size: 10.5px;
+      text-align: center;
+      margin-top: 5px;
+      letter-spacing: 2px;
+    }
+    .hero-center {
+      text-align: center;
+    }
+
+    /* ========== セクション見出し ========== */
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12.5px;
+      font-weight: 900;
+      color: var(--primary);
+      margin: 7px 0 5px;
+      padding-left: 0;
+    }
+    .section-title .bar {
+      display: inline-block;
+      width: 22px;
+      height: 2px;
+      background: var(--gold);
+    }
+    .section-title .en {
+      font-size: 9px;
+      color: var(--gold);
+      letter-spacing: 2px;
+      font-weight: 500;
+      margin-left: auto;
+    }
+
+    /* ========== 全体像サマリ ========== */
+    .summary {
+      background: linear-gradient(180deg, #ffffff 0%, var(--warm) 100%);
+      border: 1px solid var(--gold-light);
+      border-radius: 6px;
+      padding: 9px 14px;
+    }
+    .summary-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+    .sum-cell {
+      text-align: center;
+      padding: 4px;
+    }
+    .sum-cell + .sum-cell {
+      border-left: 1px dashed var(--gold-light);
+    }
+    .sum-cell .lbl {
+      font-size: 10px;
+      color: var(--muted);
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    .sum-cell .val {
+      font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--primary);
+      line-height: 1;
+      margin-top: 3px;
+    }
+    .sum-cell .val .small {
+      font-size: 12px;
+      color: var(--gold);
+      font-family: 'Hiragino Kaku Gothic ProN', sans-serif;
+    }
+    .sum-cell .desc {
+      font-size: 9.5px;
+      color: var(--muted);
+      margin-top: 2px;
+      line-height: 1.3;
+    }
+    .summary-foot {
+      font-size: 10px;
+      text-align: center;
+      margin-top: 6px;
+      padding-top: 5px;
+      border-top: 1px solid var(--gold-light);
+      color: var(--text);
+    }
+    .summary-foot strong {
+      color: var(--gold);
+      font-size: 11px;
+    }
+
+    /* ========== お約束4本柱 ========== */
+    .pillars {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .pillar {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--gold);
+      border-radius: 4px;
+      padding: 8px 11px;
+      position: relative;
+    }
+    .pillar-no {
+      display: inline-block;
+      font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+      color: var(--gold);
+      font-size: 16px;
+      font-weight: 700;
+      margin-right: 4px;
+      vertical-align: -1px;
+    }
+    .pillar-title {
+      display: inline;
+      font-size: 12.5px;
+      font-weight: 900;
+      color: var(--primary);
+      letter-spacing: 0.5px;
+    }
+    .pillar-body {
+      font-size: 10px;
+      line-height: 1.5;
+      color: var(--text);
+      margin-top: 3px;
+    }
+    .pillar-body strong {
+      color: var(--primary);
+      background: linear-gradient(transparent 60%, var(--gold-light) 60%);
+      padding: 0 2px;
+      font-weight: 800;
+    }
+
+    /* ========== お任せ範囲（4アイコン） ========== */
+    .scope {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+    .scope-card {
+      background: linear-gradient(180deg, #ffffff 0%, var(--warm) 100%);
+      border: 1px solid var(--gold-light);
+      border-top: 3px solid var(--gold);
+      border-radius: 4px;
+      padding: 7px 6px 8px;
+      text-align: center;
+    }
+    .scope-icon {
+      font-size: 22px;
+      line-height: 1;
+      margin-bottom: 3px;
+    }
+    .scope-title {
+      font-size: 11.5px;
+      font-weight: 900;
+      color: var(--primary);
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+    }
+    .scope-desc {
+      font-size: 9.5px;
+      line-height: 1.4;
+      color: var(--text);
+    }
+    .scope-foot {
+      font-size: 10px;
+      text-align: center;
+      margin-top: 5px;
+      color: var(--muted);
+    }
+    .scope-foot strong {
+      color: var(--primary);
+      background: linear-gradient(transparent 60%, var(--gold-light) 60%);
+      padding: 0 3px;
+    }
+
+    /* ========== こだわった3点 ========== */
+    .kodawari {
+      background: var(--warm);
+      border-top: 2px solid var(--gold);
+      border-bottom: 2px solid var(--gold);
+      padding: 9px 14px 10px;
+      margin-top: 2px;
+    }
+    .kodawari-head {
+      font-size: 12px;
+      font-weight: 900;
+      color: var(--primary);
+      text-align: center;
+      letter-spacing: 1.5px;
+      margin-bottom: 6px;
+      font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+    }
+    .kodawari-head .gold {
+      color: var(--gold);
+      font-size: 14px;
+    }
+    .kodawari-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .kodawari-item {
+      text-align: center;
+      padding: 0 4px;
+    }
+    .kodawari-item + .kodawari-item {
+      border-left: 1px dashed var(--gold-light);
+    }
+    .kodawari-no {
+      font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+      font-size: 18px;
+      color: var(--gold);
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 2px;
+    }
+    .kodawari-title {
+      font-size: 11.5px;
+      font-weight: 900;
+      color: var(--primary);
+      margin-bottom: 3px;
+      line-height: 1.3;
+    }
+    .kodawari-body {
+      font-size: 9.5px;
+      line-height: 1.45;
+      color: var(--text);
+    }
+
+    /* ========== CTA／連絡先 ========== */
+    .cta {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      color: #fff;
+      border-radius: 6px;
+      padding: 9px 14px;
+      margin-top: 5px;
+      position: relative;
+      border: 1px solid var(--gold);
+    }
+    .cta-title {
+      font-size: 13px;
+      font-weight: 900;
+      text-align: center;
+      margin-bottom: 5px;
+      color: var(--gold-light);
+      letter-spacing: 1.5px;
+    }
+    .contact {
+      background: #fff;
+      border-radius: 4px;
+      padding: 7px 12px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+    .contact-tel { color: var(--primary); }
+    .contact-tel .label {
+      display: inline-block;
+      background: var(--gold);
+      color: var(--primary-dark);
+      font-size: 10px;
+      padding: 2px 10px;
+      border-radius: 2px;
+      margin-bottom: 2px;
+      font-weight: 900;
+      letter-spacing: 1px;
+    }
+    .contact-tel .number {
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      line-height: 1;
+    }
+    .contact-tel .number::before {
+      content: "☎ ";
+      font-size: 20px;
+      color: var(--gold);
+    }
+    .contact-tel .hours {
+      font-size: 9.5px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+    .contact-person {
+      font-size: 11px;
+      color: var(--text);
+      margin-top: 2px;
+    }
+    .contact-qr {
+      width: 56px;
+      height: 56px;
+      background: repeating-conic-gradient(#000 0% 25%, #fff 0% 50%) 50%/7px 7px;
+      border: 3px solid #fff;
+      border-radius: 3px;
+      box-shadow: 0 0 0 2px var(--gold);
+    }
+    .contact-qr-label {
+      font-size: 9px;
+      text-align: center;
+      margin-top: 2px;
+      color: var(--gold-light);
+      font-weight: 700;
+    }
+
+    /* ========== フッター ========== */
+    .footer {
+      margin-top: auto;
+      padding-top: 6px;
+      border-top: 1px solid var(--primary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 9px;
+      color: var(--muted);
+    }
+    .footer-logo {
+      font-weight: 900;
+      color: var(--primary);
+      font-size: 11px;
+      letter-spacing: 1px;
+    }
+    .disclaimer {
+      font-size: 8.5px;
+      color: var(--muted);
+      margin-top: 4px;
+      line-height: 1.35;
+      text-align: justify;
+    }
+
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+    @media print {
+      html, body {
+        background: #fff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .flyer {
+        box-shadow: none;
+        width: 210mm;
+        height: 297mm;
+        padding: 9mm 10mm 7mm;
+        page-break-after: avoid;
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="flyer">
+    <div class="top-line"></div>
+
+    <!-- ========== 宛先 ========== -->
+    <div class="head-row">
+      <div class="to-block">
+        <div class="to-prefix">ご提案</div>
+        <div class="to-name">一般社団法人 杏仁会<span class="sama">様</span></div>
+        <div class="to-property">サービス付き高齢者向け住宅「花鏡」　空調更新計画　ご提案資料 表紙</div>
+      </div>
+      <div class="from-block">
+        <div class="date">2026年 5月</div>
+        <div class="company">協電機工 株式会社</div>
+        <div>建築設備一式｜熊本市</div>
+      </div>
+    </div>
+
+    <!-- ========== ヒーロー ========== -->
+    <div class="hero">
+      <div class="hero-center">
+        <span class="hero-badge">PROPOSAL ／ 空調更新計画</span>
+      </div>
+      <div class="hero-title">
+        <span class="gold">健康で快適</span>な住環境を、<br>
+        本気で、ご一緒に。
+      </div>
+      <div class="hero-sub">― 既設GHPを活かす、最新「エグゼアⅢ」更新のご提案 ―</div>
+      <div class="hero-tag">花鏡 ／ 鉄筋4階建 ／ 延床 2,460㎡ ／ 室外機5台・室内機64台</div>
+    </div>
+
+    <!-- ========== 1. 全体像 ========== -->
+    <div class="section-title">
+      <span class="bar"></span>
+      ご提案の全体像（詳細は同梱の根拠資料をご覧ください）
+      <span class="en">OVERVIEW</span>
+    </div>
+    <div class="summary">
+      <div class="summary-row">
+        <div class="sum-cell">
+          <div class="lbl">年間ランニング削減</div>
+          <div class="val">▲2,767<span class="small">千円/年</span></div>
+          <div class="desc">EHP更新比／同等運用条件</div>
+        </div>
+        <div class="sum-cell">
+          <div class="lbl">投資回収年数</div>
+          <div class="val">1.8<span class="small">年</span></div>
+          <div class="desc">EHP更新比較ベース</div>
+        </div>
+        <div class="sum-cell">
+          <div class="lbl">13年ライフサイクル差</div>
+          <div class="val">▲30,999<span class="small">千円</span></div>
+          <div class="desc">約3,100万円のコストメリット</div>
+        </div>
+      </div>
+      <div class="summary-foot">
+        さらに <strong>R7補正予算「省エネ・非化石転換補助金」</strong> を活用 ／ 申請から実績報告まで弊社にて代行いたします
+      </div>
+    </div>
+
+    <!-- ========== 2. 4つのお約束 ========== -->
+    <div class="section-title">
+      <span class="bar"></span>
+      協電機工から、4つのお約束
+      <span class="en">OUR PROMISE</span>
+    </div>
+    <div class="pillars">
+      <div class="pillar">
+        <span class="pillar-no">壱</span>
+        <span class="pillar-title">「ご入居者様の眠り」を守る選定</span>
+        <div class="pillar-body">
+          最新<strong>GHPエグゼアⅢ</strong>は故障率を従来比<strong>約1/3</strong>に低減、エネルギー効率も<strong>約10%向上</strong>。
+          静音・安定運転で、サ高住の生活リズムを邪魔しません。
+        </div>
+      </div>
+      <div class="pillar">
+        <span class="pillar-no">弐</span>
+        <span class="pillar-title">既設配管・受変電を活かす最適設計</span>
+        <div class="pillar-body">
+          現状GHP（303kW・5系統・64台）の<strong>既存資産を最大限活用</strong>。
+          EHP更新で必要となる<strong>受変電増設工事を回避</strong>し、工期と費用を圧縮します。
+        </div>
+      </div>
+      <div class="pillar">
+        <span class="pillar-no">参</span>
+        <span class="pillar-title">補助金の申請業務は、すべて弊社で</span>
+        <div class="pillar-body">
+          高効率空調は<strong>更新で1/3・トップ性能機で1/2の補助対象</strong>。
+          公募・申請・実績報告まで、<strong>手間のかかる事務は協電機工が代行</strong>します。
+        </div>
+      </div>
+      <div class="pillar">
+        <span class="pillar-no">肆</span>
+        <span class="pillar-title">13年フルメンテで「呼ぶ前に直る」</span>
+        <div class="pillar-body">
+          西部ガスグループ<strong>「スカイリモート」遠隔監視</strong>で異常を予兆検知。
+          定期点検＋故障修理を1本化、<strong>突発的な修繕費の発生を回避</strong>します。
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 3. お任せ範囲 ========== -->
+    <div class="section-title">
+      <span class="bar"></span>
+      お任せ範囲 ／ 私どもにて一括してお引き受けいたします
+      <span class="en">SCOPE</span>
+    </div>
+    <div class="scope">
+      <div class="scope-card">
+        <div class="scope-icon">🛠️</div>
+        <div class="scope-title">機器選定・調達</div>
+        <div class="scope-desc">最新エグゼアⅢを<br>最適容量でご提案</div>
+      </div>
+      <div class="scope-card">
+        <div class="scope-icon">📑</div>
+        <div class="scope-title">補助金 申請代行</div>
+        <div class="scope-desc">公募〜申請〜<br>実績報告まで一式</div>
+      </div>
+      <div class="scope-card">
+        <div class="scope-icon">🏗️</div>
+        <div class="scope-title">設計・施工管理</div>
+        <div class="scope-desc">既設活用設計／<br>運営継続に配慮</div>
+      </div>
+      <div class="scope-card">
+        <div class="scope-icon">🔧</div>
+        <div class="scope-title">13年フルメンテ</div>
+        <div class="scope-desc">遠隔監視＋<br>定期点検＋修理</div>
+      </div>
+    </div>
+    <div class="scope-foot">
+      お客様にお願いするのは <strong>ご決裁</strong> と <strong>お立会い</strong> のみ。あとはぜんぶ、私どもにて承ります。
+    </div>
+
+    <!-- ========== こだわった3点 ========== -->
+    <div class="kodawari">
+      <div class="kodawari-head">花鏡様のために、<span class="gold">私どもがこだわった3点</span></div>
+      <div class="kodawari-grid">
+        <div class="kodawari-item">
+          <div class="kodawari-no">一</div>
+          <div class="kodawari-title">ご入居者様の「眠り」を最優先</div>
+          <div class="kodawari-body">最新エグゼアⅢの静音・低振動性能で、夜間の安寧を守ります。</div>
+        </div>
+        <div class="kodawari-item">
+          <div class="kodawari-no">二</div>
+          <div class="kodawari-title">既設活用で、最短の工期</div>
+          <div class="kodawari-body">配管・受変電を活かす設計で、運営を止めずに更新いたします。</div>
+        </div>
+        <div class="kodawari-item">
+          <div class="kodawari-no">三</div>
+          <div class="kodawari-title">13年、ずっと安心の保守体制</div>
+          <div class="kodawari-body">遠隔監視で予兆検知、突発的な修繕費の発生を抑えます。</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== CTA／連絡先 ========== -->
+    <div class="cta">
+      <div class="cta-title">ご質問・ご検討のご連絡は、こちらまで</div>
+      <div class="contact">
+        <div class="contact-tel">
+          <div><span class="label">花鏡 空調更新計画 ご担当窓口</span></div>
+          <div class="number">090-9791-6795</div>
+          <div class="hours">受付：平日 8:00〜18:00／土日も折返し対応いたします</div>
+          <div class="contact-person">📋 ご担当：<strong>営業部　山本 良平</strong>（やまもと りょうへい）</div>
+        </div>
+        <div style="text-align:center;">
+          <div class="contact-qr"></div>
+          <div class="contact-qr-label">LINEで相談</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== フッター ========== -->
+    <div class="footer">
+      <div class="footer-logo">協電機工 株式会社</div>
+      <div>建築設備一式｜空調・電気・給排水｜熊本市</div>
+    </div>
+    <div class="disclaimer">
+      ※本紙の数値は、同梱の「サービス付き高齢者向け住宅 花鏡 空調更新計画 ご提案書（2026年5月）」総合比較表および根拠資料に基づきます。
+      ガス・電気料金は2025年4月時点単価で試算したものであり、将来の料金変動を保証するものではありません。補助金は採択を保証するものではなく、公募時期・要件に従います。
+    </div>
+
+  </div>
+</body>
+</html>
