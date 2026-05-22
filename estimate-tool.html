@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>積算取込ツール｜協電機工</title>
+<script src="https://cdn.jsdelivr.net/npm/encoding-japanese@2.2.0/encoding.min.js"></script>
+<style>
+  :root{
+    --navy:#14304f; --navy2:#1d4368; --blue:#2b6cb0; --blue-d:#22568c;
+    --gold:#b8893b; --bg:#eef1f4; --line:#d4dae0; --ink:#1f2a36;
+    --warn:#fff4d6; --warn-line:#e0b84a; --ok:#e8f3ec;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:"Segoe UI","Hiragino Kaku Gothic ProN","Meiryo",sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.6;font-size:15px;}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 16px 60px;}
+
+  header{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;
+    padding:26px 0;border-bottom:4px solid var(--gold);}
+  header .wrap{padding-bottom:0;}
+  header h1{font-size:22px;letter-spacing:.04em;}
+  header h1 .sub{font-size:13px;font-weight:400;opacity:.85;letter-spacing:0;}
+  header p.lead{font-size:13px;opacity:.9;margin-top:6px;}
+
+  .flow{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 6px;}
+  .flow .f{flex:1;min-width:150px;background:#fff;border:1px solid var(--line);
+    border-radius:8px;padding:10px 12px;font-size:13px;position:relative;}
+  .flow .f b{display:block;color:var(--blue);font-size:12px;}
+  .flow .f .n{position:absolute;top:-10px;left:-8px;background:var(--gold);color:#fff;
+    width:24px;height:24px;border-radius:50%;display:flex;align-items:center;
+    justify-content:center;font-size:13px;font-weight:700;}
+
+  .card{background:#fff;border:1px solid var(--line);border-radius:10px;
+    margin-top:18px;overflow:hidden;}
+  .card>h2{background:var(--navy);color:#fff;font-size:15px;padding:11px 16px;
+    display:flex;align-items:center;gap:10px;}
+  .card>h2 .step{background:var(--gold);width:24px;height:24px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-size:13px;flex:none;}
+  .card .body{padding:16px;}
+
+  label.fld{display:block;font-size:13px;font-weight:700;color:var(--navy);margin-bottom:4px;}
+  .row3{display:flex;gap:14px;flex-wrap:wrap;}
+  .row3>div{flex:1;min-width:180px;}
+  input[type=text]{width:100%;padding:8px 10px;border:1px solid var(--line);
+    border-radius:6px;font-size:14px;font-family:inherit;}
+  input[type=text]:focus,textarea:focus{outline:2px solid var(--blue);border-color:var(--blue);}
+  .hint{font-size:12px;color:#677;margin-top:4px;}
+
+  textarea{width:100%;min-height:150px;padding:10px;border:1px solid var(--line);
+    border-radius:6px;font-size:13px;font-family:"Consolas","Meiryo",monospace;resize:vertical;}
+
+  .btn{display:inline-flex;align-items:center;gap:6px;border:none;border-radius:7px;
+    padding:9px 16px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
+  .btn-main{background:var(--blue);color:#fff;}
+  .btn-main:hover{background:var(--blue-d);}
+  .btn-sub{background:#eef2f6;color:var(--navy);border:1px solid var(--line);}
+  .btn-sub:hover{background:#e3e9ef;}
+  .btn-gold{background:var(--gold);color:#fff;}
+  .btn-gold:hover{filter:brightness(.93);}
+  .btn:disabled{opacity:.45;cursor:not-allowed;}
+  .btnbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;align-items:center;}
+
+  .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px;margin-top:6px;}
+  table.grid{border-collapse:collapse;width:100%;min-width:920px;font-size:13px;}
+  table.grid th{background:var(--navy2);color:#fff;padding:7px 6px;font-weight:600;
+    white-space:nowrap;position:sticky;top:0;}
+  table.grid td{border:1px solid var(--line);padding:0;}
+  table.grid td.c{text-align:center;}
+  table.grid input{border:none;border-radius:0;padding:6px 6px;background:transparent;width:100%;}
+  table.grid input:focus{outline:2px solid var(--blue);outline-offset:-2px;background:#fff;}
+  table.grid input.num{text-align:right;}
+  table.grid td.amt{text-align:right;padding:6px 8px;color:var(--navy);font-weight:600;
+    white-space:nowrap;background:#f7f9fb;}
+  table.grid tr.flag td{background:var(--warn);}
+  table.grid tr.flag td.amt{background:#fbeec6;}
+  table.grid tr.off{opacity:.5;}
+  table.grid tr.off td{background:#f0f0f0;}
+  .delbtn{background:#fff;border:1px solid var(--line);color:#c0392b;border-radius:5px;
+    cursor:pointer;width:26px;height:26px;font-weight:700;}
+  .delbtn:hover{background:#fdeceb;}
+
+  .summary{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px;font-size:14px;}
+  .summary .box{background:#f4f7fa;border:1px solid var(--line);border-radius:7px;
+    padding:8px 16px;}
+  .summary .box b{color:var(--navy);font-size:18px;}
+  .summary .box .lab{font-size:11px;color:#677;}
+
+  .note{background:var(--warn);border:1px solid var(--warn-line);border-radius:7px;
+    padding:10px 14px;font-size:13px;margin-top:12px;}
+  .note b{color:#8a6411;}
+
+  details.spec{margin-top:18px;background:#fff;border:1px solid var(--line);border-radius:10px;}
+  details.spec>summary{padding:13px 16px;cursor:pointer;font-weight:700;color:var(--navy);
+    font-size:14px;list-style:none;}
+  details.spec>summary::-webkit-details-marker{display:none;}
+  details.spec>summary::before{content:"▶ ";color:var(--gold);font-size:11px;}
+  details.spec[open]>summary::before{content:"▼ ";}
+  details.spec .sbody{padding:0 16px 16px;}
+  table.spec-t{border-collapse:collapse;width:100%;font-size:13px;margin-top:8px;}
+  table.spec-t th,table.spec-t td{border:1px solid var(--line);padding:6px 9px;text-align:left;}
+  table.spec-t th{background:#eef2f6;color:var(--navy);}
+  ol.steps{margin:8px 0 8px 20px;font-size:13px;}
+  ol.steps li{margin-bottom:5px;}
+
+  footer{text-align:center;font-size:12px;color:#889;margin-top:34px;}
+  .muted{color:#677;font-size:12px;}
+  kbd{background:#2d3b4a;color:#fff;border-radius:4px;padding:1px 6px;font-size:11px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>積算取込ツール <span class="sub">／ メーカー見積PDF → 本丸EXv2 取込用CSV</span></h1>
+    <p class="lead">スタッフ13名ヒアリングで第1位の課題「見積PDFの手打ち作業」を減らすための社内ツールです。</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="flow">
+    <div class="f"><span class="n">1</span><b>案件情報</b>分類の既定値を入力</div>
+    <div class="f"><span class="n">2</span><b>貼り付け</b>PDFの本文をコピペ</div>
+    <div class="f"><span class="n">3</span><b>確認・修正</b>表で中身をチェック</div>
+    <div class="f"><span class="n">4</span><b>CSV出力</b>本丸へ取込</div>
+  </div>
+
+  <!-- STEP1 -->
+  <div class="card">
+    <h2><span class="step">1</span>案件情報（分類の既定値）</h2>
+    <div class="body">
+      <div class="row3">
+        <div>
+          <label class="fld">案件名</label>
+          <input type="text" id="projName" placeholder="例）花鏡 空調更新工事">
+          <div class="hint">CSVのファイル名に使われます</div>
+        </div>
+        <div>
+          <label class="fld">大分類名（既定）</label>
+          <input type="text" id="defMajor" placeholder="例）空調設備工事">
+        </div>
+        <div>
+          <label class="fld">中分類名（既定）</label>
+          <input type="text" id="defMid" placeholder="例）機器・配管">
+        </div>
+      </div>
+      <div class="hint">※ ここで入れた分類は、変換した全行にあらかじめ入ります。行ごとに表で修正もできます。</div>
+    </div>
+  </div>
+
+  <!-- STEP2 -->
+  <div class="card">
+    <h2><span class="step">2</span>メーカー見積PDFの本文を貼り付け</h2>
+    <div class="body">
+      <p style="font-size:13px;margin-bottom:8px;">
+        見積PDFを開く → <kbd>Ctrl</kbd>+<kbd>A</kbd>（全選択）→ <kbd>Ctrl</kbd>+<kbd>C</kbd>（コピー）→
+        下の枠に <kbd>Ctrl</kbd>+<kbd>V</kbd>（貼り付け）。明細の行がそのまま入ればOKです。
+      </p>
+      <textarea id="srcText" placeholder="ここに見積PDFの本文を貼り付けてください…&#10;&#10;（PDFが画像スキャンの場合は文字をコピーできません。その場合は表に直接入力するか、石田データサービスへの外注分で対応します）"></textarea>
+      <div class="btnbar">
+        <button class="btn btn-main" id="parseBtn">▶ 自動で表に変換</button>
+        <button class="btn btn-sub" id="sampleBtn">サンプルを試す</button>
+        <button class="btn btn-sub" id="clearBtn">クリア</button>
+        <span class="muted" id="parseMsg"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP3 -->
+  <div class="card">
+    <h2><span class="step">3</span>確認・修正</h2>
+    <div class="body">
+      <div class="row3" style="align-items:flex-end;">
+        <div>
+          <label class="fld">大分類を全行に適用</label>
+          <input type="text" id="bulkMajor" placeholder="全行の大分類名">
+        </div>
+        <div>
+          <label class="fld">中分類を全行に適用</label>
+          <input type="text" id="bulkMid" placeholder="全行の中分類名">
+        </div>
+        <div style="flex:none;">
+          <button class="btn btn-sub" id="applyBulk">一括で反映</button>
+        </div>
+      </div>
+
+      <div class="btnbar">
+        <button class="btn btn-sub" id="addRow">＋ 行を追加</button>
+        <button class="btn btn-sub" id="allOn">全行ON</button>
+        <button class="btn btn-sub" id="allOff">全行OFF</button>
+        <span class="muted">黄色の行は自動判定の自信が低い行です。金額が合っているか確認してください。</span>
+      </div>
+
+      <div class="tablewrap">
+        <table class="grid">
+          <thead>
+            <tr>
+              <th style="width:42px;">取込</th>
+              <th style="width:130px;">大分類名</th>
+              <th style="width:120px;">中分類名</th>
+              <th>品目名称</th>
+              <th style="width:150px;">規格名称</th>
+              <th style="width:64px;">単位</th>
+              <th style="width:78px;">数量</th>
+              <th style="width:96px;">単価</th>
+              <th style="width:108px;">金額</th>
+              <th style="width:42px;"></th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+            <tr><td colspan="10" style="padding:22px;text-align:center;color:#889;">
+              STEP2でPDFを貼り付けて「自動で表に変換」を押すと、ここに明細が表示されます。
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="summary">
+        <div class="box"><div class="lab">取込対象の行数</div><b id="sumRows">0</b> 行</div>
+        <div class="box"><div class="lab">金額合計（税抜）</div>¥ <b id="sumAmt">0</b></div>
+        <div class="box"><div class="lab">参考：消費税10%込</div>¥ <b id="sumTax">0</b></div>
+      </div>
+      <div class="note">
+        <b>確認のコツ：</b> 上の「金額合計」が、見積PDFの小計（税抜）と一致していれば取り込みはほぼ正確です。
+        ズレている行は黄色になりやすいので、そこを直してください。
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP4 -->
+  <div class="card">
+    <h2><span class="step">4</span>CSV出力 → 本丸EXv2へ取込</h2>
+    <div class="body">
+      <p style="font-size:13px;">取込対象（チェックの付いた行）だけをCSVに書き出します。</p>
+      <div class="btnbar">
+        <button class="btn btn-main" id="dlSjis">⬇ 本丸用CSV（Shift-JIS）</button>
+        <button class="btn btn-sub" id="dlUtf8">⬇ CSV（UTF-8・Excel確認用）</button>
+        <span class="muted" id="dlMsg"></span>
+      </div>
+      <div class="note" style="background:var(--ok);border-color:#a9cdb5;">
+        <b>本丸での文字化けが心配なときは</b> まず「Shift-JIS」を使ってください。
+        Excelで中身を見るだけなら「UTF-8」が確実です。
+      </div>
+
+      <details class="spec" style="margin-top:14px;" open>
+        <summary>本丸EXv2 への取込手順</summary>
+        <div class="sbody">
+          <ol class="steps">
+            <li>本丸EXv2 →「編集」→「テキスト取込」を開く</li>
+            <li>「テキスト読込設定（項目割付）」画面で、<b>CSVファイル名</b>の「参照」からこのツールのCSVを選択</li>
+            <li><b>「先頭レコードは取り込まない」にチェック</b>（1行目は見出しのため）</li>
+            <li><b>項目割付</b>：CSVの各列を本丸の項目に対応させる（下の対応表のとおり）</li>
+            <li>一度割り付けたら <b>F1「書式登録」</b> で書式設定ファイルに保存 → 次回からは「参照」で読むだけ</li>
+            <li><b>F12「読込実行」</b> で取込完了</li>
+          </ol>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <!-- 仕様 -->
+  <details class="spec">
+    <summary>CSVの仕様（帳票サンプル）／ 本丸の項目割付 対応表 — 石田データサービスへの依頼にも使えます</summary>
+    <div class="sbody">
+      <p style="font-size:13px;margin-top:8px;">
+        このツールが出力するCSVは、次の8列・1行目見出し付きです。文字コードはShift-JIS（またはUTF-8）。
+      </p>
+      <table class="spec-t">
+        <thead><tr><th>列</th><th>CSVの見出し</th><th>本丸 項目割付での対応先</th><th>備考</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>大分類名</td><td>大分類名</td><td>工事区分など</td></tr>
+          <tr><td>2</td><td>中分類名</td><td>中分類名</td><td>機器／配管などの分類</td></tr>
+          <tr><td>3</td><td>品目名称</td><td>品目名称</td><td>品名</td></tr>
+          <tr><td>4</td><td>規格名称</td><td>規格名称</td><td>型番・サイズなど</td></tr>
+          <tr><td>5</td><td>単位</td><td>単位</td><td>台・式・m など</td></tr>
+          <tr><td>6</td><td>数量</td><td>拾い数量（必要に応じ見積数量にも）</td><td>数値のみ</td></tr>
+          <tr><td>7</td><td>単価</td><td>基準単価（または定価）</td><td>税抜・数値のみ</td></tr>
+          <tr><td>8</td><td>金額</td><td>※本丸が自動計算する場合は割付不要</td><td>数量×単価の確認用</td></tr>
+        </tbody>
+      </table>
+      <div class="btnbar">
+        <button class="btn btn-gold" id="dlSample">⬇ サンプルCSVをダウンロード</button>
+        <span class="muted">石田データサービスへ「この形式で」と渡す見本用</span>
+      </div>
+      <div class="note" style="margin-top:14px;">
+        <b>最初の1回だけ要確認：</b> 本丸の必要項目・名称はバージョンや設定で異なります。
+        初回の取込は田口さんと一緒に「テスト取込」で確認し、ズレがあればこのツールの列を調整します。
+        （調整が必要なら、コード君に「○○の列を足して／名前を変えて」と伝えてください）
+      </div>
+    </div>
+  </details>
+
+  <footer>
+    協電機工株式会社  — 社内DXツール ／ 積算取込ツール<br>
+    写真や見積データは端末内のブラウザだけで処理され、外部には送信されません。
+  </footer>
+
+</div>
+
+<script>
+"use strict";
+
+/* ===== 単位リスト ===== */
+const UNITS = ["台","個","本","枚","式","組","セット","箇所","ヶ所","ケ所","カ所","か所",
+  "面","口","基","系統","区画","室","人","日","回","巻","缶","袋","箱","束","対","ヶ",
+  "m","ｍ","m2","㎡","m³","㎥","m3","kg","㎏","t","L","ℓ","kw","kW"];
+const UNITSET = new Set(UNITS);
+
+/* 明細でない行（合計・税など）を表す語 */
+const JUNK = /(合計|小計|総計|消費税|税抜|税込|内税|外税|値引|御見積|お見積|見積書|見積金額|内訳|ページ|頁|^\s*no[\.\s]|品\s*名|摘要|備考|件名|工事名|現場名)/i;
+
+/* ===== 文字正規化 ===== */
+function normalize(t){
+  return String(t)
+    .replace(/[０-９]/g, d => String.fromCharCode(d.charCodeAt(0)-0xFEE0))
+    .replace(/[，]/g, ",")
+    .replace(/　/g, " ")
+    .replace(/[¥￥]/g, "")
+    .replace(/\t/g, " ");
+}
+function toNum(s){
+  if(s==null) return 0;
+  const m = String(s).replace(/[,\s]/g,"").match(/-?[0-9]+(?:\.[0-9]+)?/);
+  return m ? parseFloat(m[0]) : 0;
+}
+const isNumTok = s => /^[0-9][0-9,]*(?:\.[0-9]+)?$/.test(String(s).trim());
+
+/* ===== 1行を解析 ===== */
+function parseLine(raw){
+  const line = normalize(raw).trim();
+  if(!line) return null;
+  const tokens = line.split(/\s+/).filter(Boolean);
+  if(tokens.length === 0) return null;
+
+  let unitIdx = -1, qtyIdx = -1, unit = "", qty = 0;
+
+  for(let i = tokens.length-1; i >= 0; i--){
+    const tk = tokens[i];
+    // 「3台」「120m」のように数量と単位がくっついている
+    const mj = tk.match(/^([0-9][0-9,]*(?:\.[0-9]+)?)([^\d,.\s]+)$/);
+    if(mj && UNITSET.has(mj[2])){
+      unit = mj[2]; qty = toNum(mj[1]); unitIdx = i; qtyIdx = i; break;
+    }
+    // 「3」「台」が別トークン
+    if(UNITSET.has(tk) && i > 0 && isNumTok(tokens[i-1])){
+      unit = tk; qty = toNum(tokens[i-1]); unitIdx = i; qtyIdx = i-1; break;
+    }
+  }
+
+  let price = 0, amount = 0, name = "", flag = false;
+
+  if(unitIdx >= 0){
+    const after = [];
+    for(let i = unitIdx+1; i < tokens.length; i++){
+      if(isNumTok(tokens[i])) after.push(toNum(tokens[i]));
+    }
+    if(after.length >= 2){ price = after[after.length-2]; amount = after[after.length-1]; }
+    else if(after.length === 1){ amount = after[0]; }
+    else { flag = true; }
+    name = tokens.slice(0, qtyIdx).join(" ");
+  } else {
+    // 単位が見つからない：末尾の数字から推定
+    let i = tokens.length-1;
+    const trail = [];
+    while(i >= 0 && isNumTok(tokens[i])){ trail.unshift(toNum(tokens[i])); i--; }
+    name = tokens.slice(0, i+1).join(" ");
+    if(!name) return null; // 数字だけの行は捨てる
+    if(trail.length >= 3){ qty = trail[0]; price = trail[1]; amount = trail[2]; }
+    else if(trail.length === 2){ price = trail[0]; amount = trail[1]; }
+    else if(trail.length === 1){ amount = trail[0]; }
+    flag = true; // 単位なしは要確認
+  }
+
+  // 数量・単価・金額のつじつま合わせ
+  if(qty > 0 && amount > 0 && !price) price = Math.round(amount/qty);
+  if(qty > 0 && price > 0 && !amount) amount = qty*price;
+  if(qty > 0 && price > 0 && amount > 0){
+    if(Math.abs(qty*price - amount) > Math.max(2, amount*0.01)){
+      price = Math.round(amount/qty); // 金額を信用して単価を補正
+      flag = true;
+    }
+  }
+  if(!qty) qty = 1;
+
+  return { name, unit, qty, price, flag };
+}
+
+/* ===== 状態 ===== */
+let rows = [];
+const $ = id => document.getElementById(id);
+
+function blankRow(){
+  return { include:true, major:$("defMajor").value.trim(), mid:$("defMid").value.trim(),
+           name:"", spec:"", unit:"", qty:1, price:0, flag:false };
+}
+
+/* ===== 解析実行 ===== */
+function runParse(){
+  const text = $("srcText").value;
+  if(!text.trim()){ $("parseMsg").textContent = "PDFの本文を貼り付けてください。"; return; }
+  const dMajor = $("defMajor").value.trim();
+  const dMid   = $("defMid").value.trim();
+  const out = [];
+  let junkCount = 0;
+  text.split(/\r?\n/).forEach(ln=>{
+    if(!ln.trim()) return;
+    const p = parseLine(ln);
+    if(!p) return;
+    const junk = JUNK.test(p.name) || JUNK.test(ln);
+    if(junk) junkCount++;
+    out.push({ include: !junk, major:dMajor, mid:dMid,
+      name:p.name, spec:"", unit:p.unit, qty:p.qty, price:p.price, flag:p.flag });
+  });
+  if(out.length === 0){
+    $("parseMsg").textContent = "明細行を読み取れませんでした。表に直接入力してください。";
+  } else {
+    $("parseMsg").textContent =
+      out.length + "行を読み取りました。"
+      + (junkCount ? "（うち" + junkCount + "行は合計・税などと判断し取込OFFにしています）" : "");
+  }
+  rows = out;
+  render();
+}
+
+/* ===== 描画 ===== */
+function fmt(n){ return Math.round(n).toLocaleString("ja-JP"); }
+
+function render(){
+  const tb = $("tbody");
+  if(rows.length === 0){
+    tb.innerHTML = '<tr><td colspan="10" style="padding:22px;text-align:center;color:#889;">'
+      + 'STEP2でPDFを貼り付けて「自動で表に変換」を押すと、ここに明細が表示されます。</td></tr>';
+    refreshSummary();
+    return;
+  }
+  let html = "";
+  rows.forEach((r,i)=>{
+    const cls = (r.include ? "" : "off ") + (r.flag ? "flag" : "");
+    html += '<tr class="'+cls.trim()+'" data-i="'+i+'">'
+      + '<td class="c"><input type="checkbox" data-i="'+i+'" data-f="include"'+(r.include?" checked":"")+'></td>'
+      + cell(i,"major",r.major) + cell(i,"mid",r.mid)
+      + cell(i,"name",r.name) + cell(i,"spec",r.spec)
+      + cell(i,"unit",r.unit,"",true)
+      + cell(i,"qty",r.qty,"num") + cell(i,"price",r.price,"num")
+      + '<td class="amt" data-amt="'+i+'">'+fmt(r.qty*r.price)+'</td>'
+      + '<td class="c"><button class="delbtn" data-del="'+i+'">×</button></td>'
+      + '</tr>';
+  });
+  tb.innerHTML = html;
+  refreshSummary();
+}
+function cell(i,f,v,extra,center){
+  const c = (extra||"") + (center?" ":"");
+  return '<td'+(center?' class="c"':'')+'><input type="text" class="'+c
+    +'" data-i="'+i+'" data-f="'+f+'" value="'+String(v).replace(/"/g,"&quot;")+'"></td>';
+}
+
+function refreshSummary(){
+  let n=0, amt=0;
+  rows.forEach(r=>{ if(r.include){ n++; amt += r.qty*r.price; } });
+  $("sumRows").textContent = n;
+  $("sumAmt").textContent  = fmt(amt);
+  $("sumTax").textContent  = fmt(amt*1.1);
+}
+
+/* ===== 表の編集（イベント委譲） ===== */
+$("tbody").addEventListener("input", e=>{
+  const t = e.target, i = +t.dataset.i, f = t.dataset.f;
+  if(isNaN(i) || !f) return;
+  if(f === "include"){ rows[i].include = t.checked; }
+  else if(f === "qty" || f === "price"){
+    rows[i][f] = toNum(t.value);
+    const cellEl = document.querySelector('td[data-amt="'+i+'"]');
+    if(cellEl) cellEl.textContent = fmt(rows[i].qty * rows[i].price);
+  } else { rows[i][f] = t.value; }
+  if(f === "include"){
+    const tr = t.closest("tr");
+    tr.classList.toggle("off", !t.checked);
+  }
+  refreshSummary();
+});
+$("tbody").addEventListener("change", e=>{
+  if(e.target.dataset.f === "include"){
+    const i = +e.target.dataset.i;
+    rows[i].include = e.target.checked;
+    e.target.closest("tr").classList.toggle("off", !e.target.checked);
+    refreshSummary();
+  }
+});
+$("tbody").addEventListener("click", e=>{
+  if(e.target.dataset.del != null){
+    rows.splice(+e.target.dataset.del, 1);
+    render();
+  }
+});
+
+/* ===== ボタン ===== */
+$("parseBtn").onclick = runParse;
+$("clearBtn").onclick = ()=>{ $("srcText").value=""; $("parseMsg").textContent=""; };
+$("addRow").onclick   = ()=>{ rows.push(blankRow()); render(); };
+$("allOn").onclick    = ()=>{ rows.forEach(r=>r.include=true);  render(); };
+$("allOff").onclick   = ()=>{ rows.forEach(r=>r.include=false); render(); };
+$("applyBulk").onclick= ()=>{
+  const M=$("bulkMajor").value.trim(), D=$("bulkMid").value.trim();
+  rows.forEach(r=>{ if(M) r.major=M; if(D) r.mid=D; });
+  render();
+};
+
+$("sampleBtn").onclick = ()=>{
+  $("projName").value = $("projName").value || "サンプル案件 空調更新工事";
+  $("defMajor").value = $("defMajor").value || "空調設備工事";
+  $("defMid").value   = $("defMid").value   || "機器・配管";
+  $("srcText").value =
+    "業務用エアコン 天井カセット形4方向 2.3馬力 冷暖兼用 3 台 248,000 744,000\n" +
+    "業務用エアコン 天井カセット形4方向 4馬力 冷暖兼用 2 台 398,000 796,000\n" +
+    "ワイヤードリモコン 5 個 12,000 60,000\n" +
+    "冷媒配管 ペアコイル 2分3分 120 m 1,800 216,000\n" +
+    "ドレン配管 VP25 80 m 650 52,000\n" +
+    "化粧カバー スリムダクト60 60 m 2,400 144,000\n" +
+    "据付工事費 1 式 350,000 350,000\n" +
+    "配管工事費 1 式 280,000 280,000\n" +
+    "電気工事費 1 式 150,000 150,000\n" +
+    "小計 2,792,000\n" +
+    "消費税(10%) 279,200\n" +
+    "御見積金額 3,071,200";
+  runParse();
+};
+
+/* ===== CSV出力 ===== */
+const HEADERS = ["大分類名","中分類名","品目名称","規格名称","単位","数量","単価","金額"];
+function csvCell(v){
+  v = String(v==null?"":v);
+  return /[",\r\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v;
+}
+function buildCSV(){
+  const lines = [HEADERS.join(",")];
+  rows.forEach(r=>{
+    if(!r.include) return;
+    lines.push([r.major,r.mid,r.name,r.spec,r.unit,r.qty,r.price,
+      Math.round(r.qty*r.price)].map(csvCell).join(","));
+  });
+  return lines.join("\r\n");
+}
+function fileName(){
+  const d = new Date();
+  const ymd = d.getFullYear()
+    + String(d.getMonth()+1).padStart(2,"0")
+    + String(d.getDate()).padStart(2,"0");
+  const p = $("projName").value.trim().replace(/[\\/:*?"<>|]/g,"");
+  return "積算取込_" + (p ? p+"_" : "") + ymd + ".csv";
+}
+function saveBlob(blob, name){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+function downloadCSV(csv, name, sjis){
+  if(sjis && window.Encoding){
+    try{
+      const codes = Encoding.convert(Encoding.stringToCode(csv), {to:"SJIS", from:"UNICODE"});
+      saveBlob(new Blob([new Uint8Array(codes)], {type:"text/csv"}), name);
+      return "Shift-JIS";
+    }catch(e){ /* fall through */ }
+  }
+  saveBlob(new Blob(["﻿"+csv], {type:"text/csv;charset=utf-8"}), name);
+  return "UTF-8";
+}
+
+$("dlSjis").onclick = ()=>{
+  const n = rows.filter(r=>r.include).length;
+  if(n === 0){ $("dlMsg").textContent = "取込対象の行がありません。"; return; }
+  const enc = downloadCSV(buildCSV(), fileName(), true);
+  $("dlMsg").textContent = enc === "Shift-JIS"
+    ? n + "行を Shift-JIS のCSVで出力しました。"
+    : "Shift-JIS変換が使えなかったためUTF-8で出力しました。";
+};
+$("dlUtf8").onclick = ()=>{
+  const n = rows.filter(r=>r.include).length;
+  if(n === 0){ $("dlMsg").textContent = "取込対象の行がありません。"; return; }
+  downloadCSV(buildCSV(), fileName(), false);
+  $("dlMsg").textContent = n + "行を UTF-8 のCSVで出力しました。";
+};
+$("dlSample").onclick = ()=>{
+  const sample = [
+    HEADERS.join(","),
+    "空調設備工事,機器・配管,業務用エアコン 天井カセット形4方向 冷暖兼用,2.3馬力,台,3,248000,744000",
+    "空調設備工事,機器・配管,ワイヤードリモコン,,個,5,12000,60000",
+    "空調設備工事,機器・配管,冷媒配管 ペアコイル,2分3分,m,120,1800,216000",
+    "空調設備工事,工事費,据付工事費,,式,1,350000,350000"
+  ].join("\r\n");
+  downloadCSV(sample, "積算取込_サンプル.csv", true);
+};
+</script>
+</body>
+</html>
