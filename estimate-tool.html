@@ -154,8 +154,9 @@
     <h2><span class="step">2</span>メーカー見積PDFの本文を貼り付け</h2>
     <div class="body">
       <p style="font-size:13px;margin-bottom:8px;">
-        見積PDFを開く → <kbd>Ctrl</kbd>+<kbd>A</kbd>（全選択）→ <kbd>Ctrl</kbd>+<kbd>C</kbd>（コピー）→
-        下の枠に <kbd>Ctrl</kbd>+<kbd>V</kbd>（貼り付け）。明細の行がそのまま入ればOKです。
+        見積PDFを開く → 明細の表を選択（<kbd>Ctrl</kbd>+<kbd>A</kbd>で全選択、または明細部分だけドラッグで選択）→
+        <kbd>Ctrl</kbd>+<kbd>C</kbd>（コピー）→ 下の枠に <kbd>Ctrl</kbd>+<kbd>V</kbd>（貼り付け）。<br>
+        <b>全選択できないPDFは、明細の表だけを部分コピーすればOKです（むしろ余計な行が入らずキレイです）。</b>
       </p>
       <textarea id="srcText" placeholder="ここに見積PDFの本文を貼り付けてください…&#10;&#10;（PDFが画像スキャンの場合は文字をコピーできません。その場合は表に直接入力するか、石田データサービスへの外注分で対応します）"></textarea>
       <div class="btnbar">
@@ -247,13 +248,17 @@
         <summary>本丸EXv2 への取込手順</summary>
         <div class="sbody">
           <ol class="steps">
-            <li>本丸EXv2 →「編集」→「テキスト取込」を開く</li>
+            <li>本丸EXv2 →「追加」→「テキスト取込」を開く</li>
             <li>「テキスト読込設定（項目割付）」画面で、<b>CSVファイル名</b>の「参照」からこのツールのCSVを選択</li>
             <li><b>「先頭レコードは取り込まない」にチェック</b>（1行目は見出しのため）</li>
             <li><b>項目割付</b>：CSVの各列を本丸の項目に対応させる（下の対応表のとおり）</li>
             <li>一度割り付けたら <b>F1「書式登録」</b> で書式設定ファイルに保存 → 次回からは「参照」で読むだけ</li>
             <li><b>F12「読込実行」</b> で取込完了</li>
           </ol>
+          <div class="note" style="margin-top:10px;">
+            <b>取込先に注意：</b> 取り込みは「新規の（空の）案件」で行ってください。
+            すでにデータが入っている案件に取り込むと、前のデータと混ざって見えることがあります。
+          </div>
         </div>
       </details>
     </div>
