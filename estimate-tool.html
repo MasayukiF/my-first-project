@@ -307,8 +307,14 @@ const UNITS = ["台","個","本","枚","式","組","セット","箇所","ヶ所"
   "m","ｍ","m2","㎡","m³","㎥","m3","kg","㎏","t","L","ℓ","kw","kW"];
 const UNITSET = new Set(UNITS);
 
-/* 明細でない行（合計・税など）を表す語 */
-const JUNK = /(合計|小計|総計|消費税|税抜|税込|内税|外税|値引|御見積|お見積|見積書|見積金額|内訳|ページ|頁|^\s*no[\.\s]|品\s*名|摘要|備考|件名|工事名|現場名)/i;
+/* 明細でない行（合計・税・見積書の枕詞・社内資料など）を表す語 */
+const JUNK = /(合計|小計|総計|消費税|税抜|税込|内税|外税|値引|御見積|お見積|見積書|見積金額|見積№|見積no|内訳|品名|規格名|摘要|備考|件名|工事名|現場名|施工場所|工期|支払条件|有効期限|御中|担当者|得意先|発行|頁|ページ|docusign|envelope|分類集計|実行計算|原価計算|令和|平成|[0-9]{4}年[0-9]|※)/i;
+
+/* 行内の「数量＋単位（＋単価＋金額）」を探す正規表現 */
+const NUMPAT = "[0-9][0-9,]*(?:\\.[0-9]+)?";
+const UNITPAT = UNITS.slice().sort((a,b)=>b.length-a.length)
+  .map(u=>u.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).join("|");
+const ROW_RE = new RegExp("("+NUMPAT+")\\s*("+UNITPAT+")((?:\\s*"+NUMPAT+")*)","g");
 
 /* ===== 文字正規化 ===== */
 function normalize(t){
@@ -330,60 +336,52 @@ const isNumTok = s => /^[0-9][0-9,]*(?:\.[0-9]+)?$/.test(String(s).trim());
 function parseLine(raw){
   const line = normalize(raw).trim();
   if(!line) return null;
-  const tokens = line.split(/\s+/).filter(Boolean);
-  if(tokens.length === 0) return null;
 
-  let unitIdx = -1, qtyIdx = -1, unit = "", qty = 0;
+  /* 行内から「数量＋単位（＋単価＋金額）」を探し、複数あれば一番右を採用 */
+  let m, last = null;
+  ROW_RE.lastIndex = 0;
+  while((m = ROW_RE.exec(line)) !== null){ last = m; }
 
-  for(let i = tokens.length-1; i >= 0; i--){
-    const tk = tokens[i];
-    // 「3台」「120m」のように数量と単位がくっついている
-    const mj = tk.match(/^([0-9][0-9,]*(?:\.[0-9]+)?)([^\d,.\s]+)$/);
-    if(mj && UNITSET.has(mj[2])){
-      unit = mj[2]; qty = toNum(mj[1]); unitIdx = i; qtyIdx = i; break;
-    }
-    // 「3」「台」が別トークン
-    if(UNITSET.has(tk) && i > 0 && isNumTok(tokens[i-1])){
-      unit = tk; qty = toNum(tokens[i-1]); unitIdx = i; qtyIdx = i-1; break;
-    }
-  }
+  let name = "", unit = "", qty = 0, price = 0, amount = 0, flag = false, bad = false;
 
-  let price = 0, amount = 0, name = "", flag = false;
-
-  if(unitIdx >= 0){
-    const after = [];
-    for(let i = unitIdx+1; i < tokens.length; i++){
-      if(isNumTok(tokens[i])) after.push(toNum(tokens[i]));
-    }
-    if(after.length >= 2){ price = after[after.length-2]; amount = after[after.length-1]; }
-    else if(after.length === 1){ amount = after[0]; }
+  if(last){
+    qty  = toNum(last[1]);
+    unit = last[2];
+    name = line.slice(0, last.index).trim();
+    const nums = (last[3].match(new RegExp(NUMPAT,"g")) || []).map(toNum);
+    if(nums.length >= 2){ price = nums[nums.length-2]; amount = nums[nums.length-1]; }
+    else if(nums.length === 1){ amount = nums[0]; }
     else { flag = true; }
-    name = tokens.slice(0, qtyIdx).join(" ");
+    if(nums.length >= 4) flag = true;          // 数字が多すぎる＝集計行の疑い
   } else {
-    // 単位が見つからない：末尾の数字から推定
+    /* 単位が見つからない：末尾の数字から推定（自信は低い） */
+    const tokens = line.split(/\s+/).filter(Boolean);
     let i = tokens.length-1;
     const trail = [];
     while(i >= 0 && isNumTok(tokens[i])){ trail.unshift(toNum(tokens[i])); i--; }
     name = tokens.slice(0, i+1).join(" ");
-    if(!name) return null; // 数字だけの行は捨てる
-    if(trail.length >= 3){ qty = trail[0]; price = trail[1]; amount = trail[2]; }
+    if(!name) return null;                     // 数字だけの行は捨てる
+    if(trail.length >= 4){                     // 原価計算・集計の行とみなし取込しない
+      return { name, unit:"", qty:1, price:0, flag:true, bad:true };
+    }
+    if(trail.length === 3){ qty = trail[0]; price = trail[1]; amount = trail[2]; }
     else if(trail.length === 2){ price = trail[0]; amount = trail[1]; }
     else if(trail.length === 1){ amount = trail[0]; }
-    flag = true; // 単位なしは要確認
+    flag = true;
   }
 
-  // 数量・単価・金額のつじつま合わせ
+  /* 数量・単価・金額のつじつま合わせ */
   if(qty > 0 && amount > 0 && !price) price = Math.round(amount/qty);
   if(qty > 0 && price > 0 && !amount) amount = qty*price;
   if(qty > 0 && price > 0 && amount > 0){
     if(Math.abs(qty*price - amount) > Math.max(2, amount*0.01)){
-      price = Math.round(amount/qty); // 金額を信用して単価を補正
+      price = Math.round(amount/qty);          // 金額を信用して単価を補正
       flag = true;
     }
   }
   if(!qty) qty = 1;
 
-  return { name, unit, qty, price, flag };
+  return { name, unit, qty, price, flag, bad };
 }
 
 /* ===== 状態 ===== */
@@ -401,23 +399,37 @@ function runParse(){
   if(!text.trim()){ $("parseMsg").textContent = "PDFの本文を貼り付けてください。"; return; }
   const dMajor = $("defMajor").value.trim();
   const dMid   = $("defMid").value.trim();
+
+  /* 「実行計算書／分類集計／原価計算書」など社内資料が続く場合はそこで打ち切る */
+  let lines = text.split(/\r?\n/);
+  let cut = -1;
+  for(let i = 0; i < lines.length; i++){
+    if(/(実行計算書|分類集計|原価計算書)/.test(lines[i].replace(/\s/g,""))){ cut = i; break; }
+  }
+  const cutMsg = cut >= 0
+    ? "　※" + (lines.length - cut) + "行目以降は社内資料と判断し除外しました。" : "";
+  if(cut >= 0) lines = lines.slice(0, cut);
+
   const out = [];
   let junkCount = 0;
-  text.split(/\r?\n/).forEach(ln=>{
+  lines.forEach(ln=>{
     if(!ln.trim()) return;
     const p = parseLine(ln);
     if(!p) return;
-    const junk = JUNK.test(p.name) || JUNK.test(ln);
-    if(junk) junkCount++;
-    out.push({ include: !junk, major:dMajor, mid:dMid,
+    const junk = JUNK.test(p.name.replace(/\s/g,"")) || JUNK.test(ln.replace(/\s/g,""));
+    const drop = junk || p.bad;
+    if(drop) junkCount++;
+    out.push({ include: !drop, major:dMajor, mid:dMid,
       name:p.name, spec:"", unit:p.unit, qty:p.qty, price:p.price, flag:p.flag });
   });
   if(out.length === 0){
-    $("parseMsg").textContent = "明細行を読み取れませんでした。表に直接入力してください。";
+    $("parseMsg").textContent =
+      "明細行を読み取れませんでした。表に直接入力してください。" + cutMsg;
   } else {
     $("parseMsg").textContent =
       out.length + "行を読み取りました。"
-      + (junkCount ? "（うち" + junkCount + "行は合計・税などと判断し取込OFFにしています）" : "");
+      + (junkCount ? "（うち" + junkCount + "行は合計・見出しなどと判断し取込OFF）" : "")
+      + cutMsg;
   }
   rows = out;
   render();
