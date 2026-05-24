@@ -146,6 +146,15 @@
         </div>
       </div>
       <div class="hint">※ ここで入れた分類は、変換した全行にあらかじめ入ります。行ごとに表で修正もできます。</div>
+      <div style="margin-top:12px;padding:10px 12px;background:#f4f7fa;border:1px solid var(--line);border-radius:6px;">
+        <label style="font-size:13px;cursor:pointer;display:flex;align-items:flex-start;gap:8px;">
+          <input type="checkbox" id="hankakuMode" style="margin-top:3px;">
+          <span>
+            <b>電気仕様：カタカナ・英数を半角に変換してCSV出力する</b>
+            <div class="hint" style="margin-top:2px;">電気設備の本丸品目マスタは半角カタカナで登録されているため、必要に応じてON。</div>
+          </span>
+        </label>
+      </div>
     </div>
   </div>
 
@@ -551,11 +560,15 @@ function csvCell(v){
   return /[",\r\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v;
 }
 function buildCSV(){
+  const hankaku = $("hankakuMode") && $("hankakuMode").checked;
+  const conv = (hankaku && window.Encoding)
+    ? s => Encoding.toHankakuCase(Encoding.toHankanaCase(String(s==null?"":s)))
+    : s => String(s==null?"":s);
   const lines = [HEADERS.join(",")];
   rows.forEach(r=>{
     if(!r.include) return;
-    lines.push([r.major,r.mid,r.name,r.spec,r.unit,r.qty,r.price,
-      Math.round(r.qty*r.price)].map(csvCell).join(","));
+    lines.push([conv(r.major), conv(r.mid), conv(r.name), conv(r.spec), conv(r.unit),
+      r.qty, r.price, Math.round(r.qty*r.price)].map(csvCell).join(","));
   });
   return lines.join("\r\n");
 }
