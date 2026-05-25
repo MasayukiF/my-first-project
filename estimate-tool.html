@@ -138,14 +138,28 @@
         </div>
         <div>
           <label class="fld">大分類名（既定）</label>
-          <input type="text" id="defMajor" placeholder="例）空調設備工事">
+          <input type="text" id="defMajor" placeholder="例）478 / 540 / 680（中分類CD推奨）">
+          <div class="hint"><b>本丸の中分類CD（数値）</b>を入れると、本丸側で名前が自動補完されます。</div>
         </div>
         <div>
           <label class="fld">中分類名（既定）</label>
-          <input type="text" id="defMid" placeholder="例）機器・配管">
+          <input type="text" id="defMid" placeholder="例）機器・配管／空欄でもOK">
+          <div class="hint">中分類CDから自動補完される場合は空欄で構いません。</div>
         </div>
       </div>
-      <div class="hint">※ ここで入れた分類は、変換した全行にあらかじめ入ります。行ごとに表で修正もできます。</div>
+      <div class="row3" style="margin-top:12px;">
+        <div>
+          <label class="fld">原価補給率（既定／%）</label>
+          <input type="text" id="defCostRate" placeholder="例）100">
+          <div class="hint">電気設備は通常 <b>100</b>。電線・電線管のみ <b>110</b>。</div>
+        </div>
+        <div>
+          <label class="fld">見積補給率（既定／%）</label>
+          <input type="text" id="defSellRate" placeholder="例）100">
+          <div class="hint">原価補給率と同値の場合が多いです。</div>
+        </div>
+      </div>
+      <div class="hint" style="margin-top:8px;">※ ここで入れた値は、変換した全行にあらかじめ入ります。行ごとに表で修正もできます。</div>
       <div style="margin-top:12px;padding:10px 12px;background:#f4f7fa;border:1px solid var(--line);border-radius:6px;">
         <label style="font-size:13px;cursor:pointer;display:flex;align-items:flex-start;gap:8px;">
           <input type="checkbox" id="hankakuMode" style="margin-top:3px;">
@@ -283,14 +297,16 @@
       <table class="spec-t">
         <thead><tr><th>列</th><th>CSVの見出し</th><th>本丸 項目割付での対応先</th><th>備考</th></tr></thead>
         <tbody>
-          <tr><td>1</td><td>大分類名</td><td>大分類名</td><td>工事区分など</td></tr>
-          <tr><td>2</td><td>中分類名</td><td>中分類名</td><td>機器／配管などの分類</td></tr>
+          <tr><td>1</td><td>大分類名</td><td>大分類名 または <b>中分類CD</b></td><td>CD（数値）を入れると本丸が名前を自動補完</td></tr>
+          <tr><td>2</td><td>中分類名</td><td>中分類名</td><td>CDから自動補完される場合は空欄でOK</td></tr>
           <tr><td>3</td><td>品目名称</td><td>品目名称</td><td>品名</td></tr>
           <tr><td>4</td><td>規格名称</td><td>規格名称</td><td>型番・サイズなど</td></tr>
           <tr><td>5</td><td>単位</td><td>単位</td><td>台・式・m など</td></tr>
           <tr><td>6</td><td>数量</td><td>拾い数量（必要に応じ見積数量にも）</td><td>数値のみ</td></tr>
           <tr><td>7</td><td>単価</td><td>基準単価（または定価）</td><td>税抜・数値のみ</td></tr>
           <tr><td>8</td><td>金額</td><td>※本丸が自動計算する場合は割付不要</td><td>数量×単価の確認用</td></tr>
+          <tr><td>9</td><td>原価補給率</td><td>原価補給率</td><td>電気は通常100。電線・電線管のみ110</td></tr>
+          <tr><td>10</td><td>見積補給率</td><td>見積補給率</td><td>原価補給率と同値が多い</td></tr>
         </tbody>
       </table>
       <div class="btnbar">
@@ -298,9 +314,10 @@
         <span class="muted">石田データサービスへ「この形式で」と渡す見本用</span>
       </div>
       <div class="note" style="margin-top:14px;">
-        <b>最初の1回だけ要確認：</b> 本丸の必要項目・名称はバージョンや設定で異なります。
-        初回の取込は田口さんと一緒に「テスト取込」で確認し、ズレがあればこのツールの列を調整します。
-        （調整が必要なら、コード君に「○○の列を足して／名前を変えて」と伝えてください）
+        <b>※ CSV列を 8列 → 10列 に拡張しました：</b>
+        末尾に「原価補給率」「見積補給率」を追加（列9・列10）。
+        既に F1「書式登録」で書式を保存している方は、新しい列9・列10 を本丸の「原価補給率」「見積補給率」へ割り付けて
+        <b>再度 F1書式登録 で上書き保存</b>してください（列1〜8の割付は変わりません）。
       </div>
     </div>
   </details>
@@ -322,7 +339,7 @@ const UNITS = ["台","個","本","枚","式","組","セット","箇所","ヶ所"
 const UNITSET = new Set(UNITS);
 
 /* 明細でない行（合計・税・見積書の枕詞・社内資料など）を表す語 */
-const JUNK = /(合計|小計|総計|消費税|税抜|税込|内税|外税|値引|御見積|お見積|見積書|見積金額|見積№|見積no|内訳|品名|規格名|摘要|備考|件名|工事名|現場名|施工場所|工期|支払条件|有効期限|御中|担当者|得意先|発行|頁|ページ|docusign|envelope|分類集計|実行計算|原価計算|令和|平成|[0-9]{4}年[0-9]|※)/i;
+const JUNK = /(合計|小計|総計|消費税|税抜|税込|内税|外税|値引|御見積|お見積|見積書|見積金額|見積№|見積no|内訳|品名|規格名|摘要|備考|件名|工事名|現場名|施工場所|工期|支払条件|有効期限|御中|担当者|得意先|発行|頁|ページ|docusign|envelope|分類集計|実行計算|原価計算|集計|直工|労務名|令和|平成|[0-9]{4}年[0-9]|※)/i;
 
 /* 行内の「数量＋単位（＋単価＋金額）」を探す正規表現 */
 const NUMPAT = "[0-9][0-9,]*(?:\\.[0-9]+)?";
@@ -554,7 +571,7 @@ $("sampleBtn").onclick = ()=>{
 };
 
 /* ===== CSV出力 ===== */
-const HEADERS = ["大分類名","中分類名","品目名称","規格名称","単位","数量","単価","金額"];
+const HEADERS = ["大分類名","中分類名","品目名称","規格名称","単位","数量","単価","金額","原価補給率","見積補給率"];
 function csvCell(v){
   v = String(v==null?"":v);
   return /[",\r\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v;
@@ -564,11 +581,13 @@ function buildCSV(){
   const conv = (hankaku && window.Encoding)
     ? s => Encoding.toHankakuCase(Encoding.toHankanaCase(String(s==null?"":s)))
     : s => String(s==null?"":s);
+  const costRate = $("defCostRate") ? $("defCostRate").value.trim() : "";
+  const sellRate = $("defSellRate") ? $("defSellRate").value.trim() : "";
   const lines = [HEADERS.join(",")];
   rows.forEach(r=>{
     if(!r.include) return;
     lines.push([conv(r.major), conv(r.mid), conv(r.name), conv(r.spec), conv(r.unit),
-      r.qty, r.price, Math.round(r.qty*r.price)].map(csvCell).join(","));
+      r.qty, r.price, Math.round(r.qty*r.price), costRate, sellRate].map(csvCell).join(","));
   });
   return lines.join("\r\n");
 }
@@ -616,10 +635,10 @@ $("dlUtf8").onclick = ()=>{
 $("dlSample").onclick = ()=>{
   const sample = [
     HEADERS.join(","),
-    "空調設備工事,機器・配管,業務用エアコン 天井カセット形4方向 冷暖兼用,2.3馬力,台,3,248000,744000",
-    "空調設備工事,機器・配管,ワイヤードリモコン,,個,5,12000,60000",
-    "空調設備工事,機器・配管,冷媒配管 ペアコイル,2分3分,m,120,1800,216000",
-    "空調設備工事,工事費,据付工事費,,式,1,350000,350000"
+    "空調設備工事,機器・配管,業務用エアコン 天井カセット形4方向 冷暖兼用,2.3馬力,台,3,248000,744000,100,100",
+    "空調設備工事,機器・配管,ワイヤードリモコン,,個,5,12000,60000,100,100",
+    "空調設備工事,機器・配管,冷媒配管 ペアコイル,2分3分,m,120,1800,216000,100,100",
+    "空調設備工事,工事費,据付工事費,,式,1,350000,350000,100,100"
   ].join("\r\n");
   downloadCSV(sample, "積算取込_サンプル.csv", true);
 };
