@@ -333,9 +333,13 @@
 "use strict";
 
 /* ===== 単位リスト ===== */
-const UNITS = ["台","個","本","枚","式","組","セット","箇所","ヶ所","ケ所","カ所","か所",
-  "面","口","基","系統","区画","室","人","日","回","巻","缶","袋","箱","束","対","ヶ",
-  "m","ｍ","m2","㎡","m³","㎥","m3","kg","㎏","t","L","ℓ","kw","kW"];
+/* 日本語単位：直後に数字が続いてもOK（「1個43,125」のようなくっつきPDFに対応） */
+const UNITS_JP = ["セット","箇所","ヶ所","ケ所","カ所","か所","系統","区画","m³",
+  "台","個","本","枚","式","組","面","口","基","室","人","日","回","巻","缶","袋","箱","束","対","ヶ",
+  "㎡","㎥","㎏","ℓ"];
+/* ASCII単位：直後に英数字が続く場合は型番の一部（例：KDJ3705L280の"L"）とみなし単位扱いしない */
+const UNITS_LATIN = ["m2","m3","kg","kw","kW","ｍ","m","L","t"];
+const UNITS = UNITS_JP.concat(UNITS_LATIN);
 const UNITSET = new Set(UNITS);
 
 /* 明細でない行（合計・税・見積書の枕詞・社内資料など）を表す語 */
@@ -343,9 +347,19 @@ const JUNK = /(合計|小計|総計|消費税|税抜|税込|内税|外税|値引
 
 /* 行内の「数量＋単位（＋単価＋金額）」を探す正規表現 */
 const NUMPAT = "[0-9][0-9,]*(?:\\.[0-9]+)?";
-const UNITPAT = UNITS.slice().sort((a,b)=>b.length-a.length)
+const UNITPAT_JP    = UNITS_JP.slice().sort((a,b)=>b.length-a.length)
   .map(u=>u.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).join("|");
-const ROW_RE = new RegExp("("+NUMPAT+")\\s*("+UNITPAT+")((?:\\s*"+NUMPAT+")*)","g");
+const UNITPAT_LATIN = UNITS_LATIN.slice().sort((a,b)=>b.length-a.length)
+  .map(u=>u.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).join("|");
+/* 日本語単位はそのまま採用、ASCII単位は直後が英数字でない場合のみ採用 */
+const ROW_RE = new RegExp(
+  "("+NUMPAT+")\\s*("
+  + "(?:"+UNITPAT_JP+")"
+  + "|"
+  + "(?:"+UNITPAT_LATIN+")(?![A-Za-z0-9])"
+  + ")((?:\\s*"+NUMPAT+")*)",
+  "g"
+);
 
 /* ===== 文字正規化 ===== */
 function normalize(t){
