@@ -336,7 +336,7 @@
 /* 日本語単位：直後に数字が続いてもOK（「1個43,125」のようなくっつきPDFに対応） */
 const UNITS_JP = ["セット","箇所","ヶ所","ケ所","カ所","か所","系統","区画","m³",
   "台","個","本","枚","式","組","面","口","基","室","人","日","回","巻","缶","袋","箱","束","対","ヶ",
-  "㎡","㎥","㎏","ℓ"];
+  "㎡","㎥","㎏","ℓ","〃","仝"];
 /* ASCII単位：直後に英数字が続く場合は型番の一部（例：KDJ3705L280の"L"）とみなし単位扱いしない */
 const UNITS_LATIN = ["m2","m3","kg","kw","kW","ｍ","m","L","t"];
 const UNITS = UNITS_JP.concat(UNITS_LATIN);
@@ -409,6 +409,9 @@ function parseLine(raw){
     if(trail.length >= 4){                     // 原価計算・集計の行とみなし取込しない
       return { name, unit:"", qty:1, price:0, flag:true, bad:true };
     }
+    if(trail.length === 0){                    // 単位なし＆数字なし＝説明行とみなし取込OFF
+      return { name, unit:"", qty:1, price:0, flag:true, bad:true };
+    }
     if(trail.length === 3){ qty = trail[0]; price = trail[1]; amount = trail[2]; }
     else if(trail.length === 2){ price = trail[0]; amount = trail[1]; }
     else if(trail.length === 1){ amount = trail[0]; }
@@ -467,13 +470,20 @@ function runParse(){
     out.push({ include: !drop, major:dMajor, mid:dMid,
       name:p.name, spec:"", unit:p.unit, qty:p.qty, price:p.price, flag:p.flag });
   });
+  /* 〃／仝（ditto）を直前の行の単位で置換 */
+  let lastUnit = "";
+  out.forEach(r => {
+    if(r.unit === "〃" || r.unit === "仝"){ r.unit = lastUnit; }
+    else if(r.unit){ lastUnit = r.unit; }
+  });
+
   if(out.length === 0){
     $("parseMsg").textContent =
       "明細行を読み取れませんでした。表に直接入力してください。" + cutMsg;
   } else {
     $("parseMsg").textContent =
       out.length + "行を読み取りました。"
-      + (junkCount ? "（うち" + junkCount + "行は合計・見出しなどと判断し取込OFF）" : "")
+      + (junkCount ? "（うち" + junkCount + "行は合計・見出し・説明行などと判断し取込OFF）" : "")
       + cutMsg;
   }
   rows = out;
