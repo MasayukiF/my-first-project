@@ -338,7 +338,8 @@ const UNITS_JP = ["セット","箇所","ヶ所","ケ所","カ所","か所","系�
   "台","個","本","枚","式","組","面","口","基","室","人","日","回","巻","缶","袋","箱","束","対","ヶ",
   "㎡","㎥","㎏","ℓ","〃","仝"];
 /* ASCII単位：直後に英数字が続く場合は型番の一部（例：KDJ3705L280の"L"）とみなし単位扱いしない */
-const UNITS_LATIN = ["m2","m3","kg","kw","kW","ｍ","m","L","t"];
+/* kg / kW は通常「数量」ではなく重量・能力のスペック表記なので、単位リストから除外している */
+const UNITS_LATIN = ["m2","m3","ｍ","m","L","t"];
 const UNITS = UNITS_JP.concat(UNITS_LATIN);
 const UNITSET = new Set(UNITS);
 
@@ -409,16 +410,28 @@ function parseLine(raw){
     if(trail.length >= 4){                     // 原価計算・集計の行とみなし取込しない
       return { name, unit:"", qty:1, price:0, flag:true, bad:true };
     }
-    if(trail.length === 0){                    // 単位なし＆数字なし＝説明行とみなし取込OFF
-      return { name, unit:"", qty:1, price:0, flag:true, bad:true };
+    if(trail.length === 0){
+      // 単位なし＆数字なし。英大文字を含む行（品番・JIS番号等）は親行の可能性があるためOFFにしない
+      const hasUpper = /[A-Z]/.test(name);
+      return { name, unit:"", qty:1, price:0, flag:true, bad: !hasUpper };
     }
     if(trail.length === 3){ qty = trail[0]; price = trail[1]; amount = trail[2]; }
-    else if(trail.length === 2){ price = trail[0]; amount = trail[1]; }
+    else if(trail.length === 2){
+      // 2つの数字だけの行：[数量,単価] か [単価,金額] かを推定
+      // 1つ目が小整数で2つ目が桁違いに大きいなら [数量,単価]（例：1×640,000、202×1,700）
+      const t0Int = Math.abs(trail[0] - Math.round(trail[0])) < 0.001;
+      if(t0Int && trail[0] < 1000 && trail[1] >= trail[0] * 5){
+        qty = trail[0]; price = trail[1];
+      } else {
+        price = trail[0]; amount = trail[1];
+      }
+    }
     else if(trail.length === 1){ amount = trail[0]; }
     flag = true;
   }
 
   /* 数量・単価・金額のつじつま合わせ */
+  if(!qty) qty = 1;                          // qtyが未設定なら先に1を入れて補正可能にする
   if(qty > 0 && amount > 0 && !price) price = Math.round(amount/qty);
   if(qty > 0 && price > 0 && !amount) amount = qty*price;
   if(qty > 0 && price > 0 && amount > 0){
@@ -427,7 +440,6 @@ function parseLine(raw){
       flag = true;
     }
   }
-  if(!qty) qty = 1;
 
   return { name, unit, qty, price, flag, bad };
 }
