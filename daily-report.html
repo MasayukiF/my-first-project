@@ -685,7 +685,7 @@ ${v('c-detail')}${other ? '\n【その他】\n' + other : ''}`;
     fetch(GAS_URL, {
       method: 'POST',
       mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify(payload)
     }).then(() => {
       status.style.color = '#27ae60';
