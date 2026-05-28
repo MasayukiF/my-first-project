@@ -79,6 +79,10 @@
   .delbtn{background:#fff;border:1px solid var(--line);color:#c0392b;border-radius:5px;
     cursor:pointer;width:26px;height:26px;font-weight:700;}
   .delbtn:hover{background:#fdeceb;}
+  .mergebtn{background:#fef9e6;border:1px solid var(--warn-line);color:#8a6411;
+    border-radius:5px;cursor:pointer;padding:3px 6px;font-size:11px;font-weight:700;
+    font-family:inherit;white-space:nowrap;}
+  .mergebtn:hover{background:#fbeec6;}
 
   .summary{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px;font-size:14px;}
   .summary .box{background:#f4f7fa;border:1px solid var(--line);border-radius:7px;
@@ -213,6 +217,7 @@
         <button class="btn btn-sub" id="addRow">＋ 行を追加</button>
         <button class="btn btn-sub" id="allOn">全行ON</button>
         <button class="btn btn-sub" id="allOff">全行OFF</button>
+        <button class="btn btn-sub" id="mergeAll" title="黄色（自動判定の自信が低い）行のうち、説明だけの行を、最寄りの商品行の規格名称にまとめて削除します">↑黄色行を一括で規格に統合</button>
         <span class="muted">黄色の行は自動判定の自信が低い行です。金額が合っているか確認してください。</span>
       </div>
 
@@ -229,6 +234,7 @@
               <th style="width:78px;">数量</th>
               <th style="width:96px;">単価</th>
               <th style="width:108px;">金額</th>
+              <th style="width:58px;">規格へ</th>
               <th style="width:42px;"></th>
             </tr>
           </thead>
@@ -508,7 +514,7 @@ function fmt(n){ return Math.round(n).toLocaleString("ja-JP"); }
 function render(){
   const tb = $("tbody");
   if(rows.length === 0){
-    tb.innerHTML = '<tr><td colspan="10" style="padding:22px;text-align:center;color:#889;">'
+    tb.innerHTML = '<tr><td colspan="11" style="padding:22px;text-align:center;color:#889;">'
       + 'STEP2でPDFを貼り付けて「自動で表に変換」を押すと、ここに明細が表示されます。</td></tr>';
     refreshSummary();
     return;
@@ -516,6 +522,9 @@ function render(){
   let html = "";
   rows.forEach((r,i)=>{
     const cls = (r.include ? "" : "off ") + (r.flag ? "flag" : "");
+    const mergeBtn = (r.flag && !r.price)
+      ? '<button class="mergebtn" data-merge="'+i+'" title="この行を最寄りの商品行の規格名称に統合して削除">↑統合</button>'
+      : '';
     html += '<tr class="'+cls.trim()+'" data-i="'+i+'">'
       + '<td class="c"><input type="checkbox" data-i="'+i+'" data-f="include"'+(r.include?" checked":"")+'></td>'
       + cell(i,"major",r.major) + cell(i,"mid",r.mid)
@@ -523,6 +532,7 @@ function render(){
       + cell(i,"unit",r.unit,"",true)
       + cell(i,"qty",r.qty,"num") + cell(i,"price",r.price,"num")
       + '<td class="amt" data-amt="'+i+'">'+fmt(r.qty*r.price)+'</td>'
+      + '<td class="c">'+mergeBtn+'</td>'
       + '<td class="c"><button class="delbtn" data-del="'+i+'">×</button></td>'
       + '</tr>';
   });
@@ -572,7 +582,56 @@ $("tbody").addEventListener("click", e=>{
     rows.splice(+e.target.dataset.del, 1);
     render();
   }
+  if(e.target.dataset.merge != null){
+    mergeRowToSpec(+e.target.dataset.merge);
+  }
 });
+
+/* ===== 規格名称への統合 ===== */
+function findNearestProductRow(idx, skipSet){
+  for(let i = idx - 1; i >= 0; i--){
+    if(skipSet && skipSet.has(i)) continue;
+    if(rows[i].price > 0 || rows[i].unit) return i;
+  }
+  for(let i = idx + 1; i < rows.length; i++){
+    if(skipSet && skipSet.has(i)) continue;
+    if(rows[i].price > 0 || rows[i].unit) return i;
+  }
+  return -1;
+}
+function mergeRowToSpec(idx){
+  const me = rows[idx];
+  const myText = ((me.name || "").trim() + (me.spec ? " " + me.spec : "")).trim();
+  if(!myText){ rows.splice(idx, 1); render(); return; }
+  const target = findNearestProductRow(idx);
+  if(target < 0){
+    alert("統合先の商品行（単価>0または単位あり）が見つかりません。");
+    return;
+  }
+  rows[target].spec = (rows[target].spec ? rows[target].spec + " " : "") + myText;
+  rows.splice(idx, 1);
+  render();
+}
+function mergeAllFlaggedToSpec(){
+  const toRemove = new Set();
+  for(let i = 0; i < rows.length; i++){
+    const r = rows[i];
+    if(!r.flag) continue;
+    if(r.price > 0 || r.unit) continue;
+    const target = findNearestProductRow(i, toRemove);
+    if(target < 0) continue;
+    const myText = ((r.name || "").trim() + (r.spec ? " " + r.spec : "")).trim();
+    if(!myText){ toRemove.add(i); continue; }
+    rows[target].spec = (rows[target].spec ? rows[target].spec + " " : "") + myText;
+    toRemove.add(i);
+  }
+  if(toRemove.size === 0){
+    alert("統合できる説明行が見つかりませんでした。");
+    return;
+  }
+  Array.from(toRemove).sort((a,b)=>b-a).forEach(i => rows.splice(i, 1));
+  render();
+}
 
 /* ===== ボタン ===== */
 $("parseBtn").onclick = runParse;
@@ -585,6 +644,7 @@ $("applyBulk").onclick= ()=>{
   rows.forEach(r=>{ if(M) r.major=M; if(D) r.mid=D; });
   render();
 };
+$("mergeAll").onclick = mergeAllFlaggedToSpec;
 
 $("sampleBtn").onclick = ()=>{
   $("projName").value = $("projName").value || "サンプル案件 空調更新工事";
