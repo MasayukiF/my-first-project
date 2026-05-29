@@ -60,7 +60,7 @@
 
 ---
 
-## 進行中タスク（2026年5月22日 時点）
+## 進行中タスク（2026年5月29日 時点）
 
 新セッションを開いたら、まずここを見て進行中タスクの状況を把握すること。
 複数タスクを並行する場合は **タスクごとに別ブランチ・別セッション** で進める方針。
@@ -107,9 +107,26 @@
   - 画像スキャンPDF（文字コピー不可）は石田データサービス外注分でカバー
 - **重要メモ**: 本丸の必要項目はバージョン/設定で異なる。初回取込は必ず実機確認してから本運用へ。
 
+#### 4. 日報フォーム GAS連携 — スタッフ周知 ＆ Looker Studio
+- **ブランチ**: `claude/recall-previous-session-AVqmc`
+- **背景**: `daily-report.html` のGAS連携が完成。スプレッドシート自動記録＆Chatwork自動投稿が動作確認済み。
+- **GAS情報**:
+  - デプロイURL: `https://script.google.com/macros/s/AKfycbyBtQt5S4N5eIti8LtHFIN49JSbeZhBDE52-ZKOEkB8slJzhLWWGqP24jh_cvknqE5f/exec`
+  - 実行アカウント: `masayuki@kyoden-kiko.co.jp`（会社アカウント）
+  - スプレッドシートID: `1b1YQ64BhQDRZr_r_odsen51yC6eFIiyP822LITyLPFQ`（「テスト 日報①」）
+  - Chatworkトークン: `f2853fcc11c08b1c3a4e97221a6d4c94`
+  - Chatworkルームマッピング: 現場代理人→237653491 / 積算→247578971 / 設備営業→247580369 / クリーンリフレ→247505420 / 管理本部→249421850
+- **スプレッドシートヘッダー（Row1）**: タイムスタンプ | 名前 | 日付 | 役割 | メイン項目 | かかった時間 | 詳細内容 | お客様要望・クレーム | 協力業者の声 | ところでの種類 | お客様担当者 | お客様反応 | その他
+- **完了済み**: スプレッドシート記録 ✅ / Chatwork自動投稿 ✅ / ヘッダー整備 ✅
+- **次のアクション**:
+  - ① スタッフ全員に「Ctrl+Shift+R でキャッシュクリア」を周知（古いキャッシュで使うとChatwork自動投稿が動かない）
+  - ② Looker Studio（lookerstudio.google.com）でダッシュボード作成
+    - データソース: Googleスプレッドシート「テスト 日報①」
+    - 作りたいグラフ: 役割別件数・日別工数・役割別平均工数 など
+
 ### ✅ 完了済み
 - 営業チラシ（協電機工エアコン省エネ訴求） — `sales-flyer.html` / `sales-flyer-blue.html` / `sales-flyer-friendly.html`（main マージ済）
-- 日報フォーム（`daily-report.html`）— 協電機工 部門別日報入力フォーム
+- 日報フォーム（`daily-report.html`）— 協電機工 部門別日報入力フォーム（GAS連携・スプレッドシート記録・Chatwork自動投稿まで完成）
 - 写真リネームツール（`photo-rename.html` / `photo-rename-guide.html`）
 - トップページ（`index.html`）／プロフィール（`profile.html`）
 
