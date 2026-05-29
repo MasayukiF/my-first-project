@@ -488,9 +488,14 @@
   </div>
 
   <div class="copy-success" id="copy-msg"></div>
+
+  <!-- スプレッドシート記録ステータス -->
+  <div id="sheet-status" style="text-align:center;font-size:0.78rem;margin-top:6px;min-height:18px;"></div>
 </div>
 
 <script>
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbyBtQt5S4N5eIti8LtHFIN49JSbeZhBDE52-ZKOEkB8slJzhLWWGqP24jh_cvknqE5f/exec';
+
   let currentRole = null;
 
   document.getElementById('date').valueAsDate = new Date();
@@ -542,7 +547,7 @@
     if (!name) { alert('名前を選択してください'); return; }
     if (!date) { alert('日付を入力してください'); return; }
 
-    const header = `(i) 日報　名前：${name}　日付：${date}`;
+    const header = `(i) 【日報 自動投稿】\n名前：${name}　日付：${date}`;
     let body = '';
 
     if (currentRole === 'gensya') {
@@ -625,6 +630,72 @@ ${v('c-detail')}${other ? '\n【その他】\n' + other : ''}`;
 
     // localStorage に保存（スマホ切替対策）
     localStorage.setItem('nippou_text', result);
+
+    // スプレッドシートに送信＋Chatwork自動投稿
+    sendToSheet(name, date, currentRole, result);
+  }
+
+  const roleLabel = {
+    gensya: '現場代理人', sekisan: '積算',
+    kanri: '管理本部', eigyo: '設備営業', clean: 'クリーンリフレ'
+  };
+
+  function buildGasData(role, name, date) {
+    const base = { name, date, role: roleLabel[role] || role };
+    if (role === 'gensya') {
+      const checks = [...document.querySelectorAll('.g-tokoro:checked')].map(c => c.value);
+      return { ...base,
+        main: v('g-koji') || v('g-koji-select'),
+        time: v('g-time'), detail: v('g-change'),
+        claim: v('g-claim'), rival: v('g-rival'),
+        tokoro: checks.join('　'), client: v('g-client'),
+        reaction: v('g-reaction'), other: v('g-other') };
+    } else if (role === 'sekisan') {
+      return { ...base,
+        main: v('s-project'), time: v('s-time'),
+        detail: v('s-what') + ' ' + v('s-detail'),
+        claim: '', rival: '', tokoro: '',
+        client: v('s-client'), reaction: v('s-progress'), other: v('s-other') };
+    } else if (role === 'kanri') {
+      return { ...base,
+        main: v('k-content'), time: '', detail: '',
+        claim: '', rival: '', tokoro: '',
+        client: '', reaction: '', other: v('k-other') };
+    } else if (role === 'eigyo') {
+      return { ...base,
+        main: v('e-company'), time: '', detail: v('e-what') + ' ' + v('e-detail'),
+        claim: '', rival: '', tokoro: v('e-tokoro'),
+        client: v('e-person'), reaction: v('e-tokoro-detail'), other: v('e-other') };
+    } else if (role === 'clean') {
+      return { ...base,
+        main: v('c-company'), time: '', detail: v('c-what') + ' ' + v('c-detail'),
+        claim: '', rival: '', tokoro: '',
+        client: v('c-person'), reaction: '', other: v('c-other') };
+    }
+    return base;
+  }
+
+  function sendToSheet(name, date, role, text) {
+    const status = document.getElementById('sheet-status');
+    status.style.color = '#7f8c9a';
+    status.textContent = '📊 送信中...';
+
+    const payload = buildGasData(role, name, date);
+    payload.text = text || '';
+
+    fetch(GAS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload)
+    }).then(() => {
+      status.style.color = '#27ae60';
+      status.textContent = '✅ スプレッドシート記録＆Chatwork自動投稿 完了';
+      setTimeout(() => { status.textContent = ''; }, 6000);
+    }).catch(() => {
+      status.style.color = '#e74c3c';
+      status.textContent = '⚠️ 送信に失敗しました';
+    });
   }
 
   function copyText() {
