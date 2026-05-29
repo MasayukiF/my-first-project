@@ -631,8 +631,8 @@ ${v('c-detail')}${other ? '\n【その他】\n' + other : ''}`;
     // localStorage に保存（スマホ切替対策）
     localStorage.setItem('nippou_text', result);
 
-    // スプレッドシートに送信
-    sendToSheet(name, date, currentRole);
+    // スプレッドシートに送信＋Chatwork自動投稿
+    sendToSheet(name, date, currentRole, result);
   }
 
   const roleLabel = {
@@ -675,12 +675,13 @@ ${v('c-detail')}${other ? '\n【その他】\n' + other : ''}`;
     return base;
   }
 
-  function sendToSheet(name, date, role) {
+  function sendToSheet(name, date, role, text) {
     const status = document.getElementById('sheet-status');
     status.style.color = '#7f8c9a';
-    status.textContent = '📊 スプレッドシートに記録中...';
+    status.textContent = '📊 送信中...';
 
     const payload = buildGasData(role, name, date);
+    payload.text = text || '';
 
     fetch(GAS_URL, {
       method: 'POST',
@@ -689,11 +690,11 @@ ${v('c-detail')}${other ? '\n【その他】\n' + other : ''}`;
       body: JSON.stringify(payload)
     }).then(() => {
       status.style.color = '#27ae60';
-      status.textContent = '✅ スプレッドシートに記録しました';
-      setTimeout(() => { status.textContent = ''; }, 5000);
+      status.textContent = '✅ スプレッドシート記録＆Chatwork自動投稿 完了';
+      setTimeout(() => { status.textContent = ''; }, 6000);
     }).catch(() => {
       status.style.color = '#e74c3c';
-      status.textContent = '⚠️ 記録に失敗しました（Chatworkへのコピーは問題なし）';
+      status.textContent = '⚠️ 送信に失敗しました';
     });
   }
 
