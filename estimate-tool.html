@@ -384,6 +384,35 @@ function toNum(s){
 }
 const isNumTok = s => /^[0-9][0-9,]*(?:\.[0-9]+)?$/.test(String(s).trim());
 
+/* ===== 品目名称から規格名称を自動分離 ===== */
+/* 末尾に「数字＋スペック接尾辞」を持つトークンを見つけたら、そこから後ろを規格に切り出す */
+const SPEC_SUFFIX_RE = /[0-9]+(?:\.[0-9]+)?(?:MPa|kHz|kW|kV|kg|mm|cm|°C|Hz|馬力|回線|回路|寸|分|型|種|級|相|号|℃|A|V|W|m|t)$/;
+const SIZE_DIM_RE    = /[0-9]+(?:\.[0-9]+)?(?:×[0-9]+(?:\.[0-9]+)?){1,}/;
+const HAS_JP_RE      = /[぀-ヿ一-鿿ｦ-ﾟ]/;
+
+function splitNameSpec(name){
+  if(!name) return { name:"", spec:"" };
+  const tokens = name.split(/\s+/).filter(Boolean);
+  if(tokens.length < 2) return { name, spec:"" };
+  let splitAt = -1;
+  for(let i = tokens.length - 1; i > 0; i--){
+    const t = tokens[i];
+    if(SPEC_SUFFIX_RE.test(t) || SIZE_DIM_RE.test(t)){
+      splitAt = i;
+      // 連続する「数字を含むトークン」を左に拡張（P型1級・30回線 のような連続規格）
+      while(splitAt > 1 && /[0-9]/.test(tokens[splitAt - 1])){
+        splitAt--;
+      }
+      break;
+    }
+  }
+  if(splitAt < 1) return { name, spec:"" };
+  const namePart = tokens.slice(0, splitAt).join(" ");
+  // 品名側に日本語が残らない場合は分離しない（例：「日東工業 S-1.屋外…」の誤分離防止）
+  if(!HAS_JP_RE.test(namePart)) return { name, spec:"" };
+  return { name: namePart, spec: tokens.slice(splitAt).join(" ") };
+}
+
 /* ===== 1行を解析 ===== */
 function parseLine(raw){
   const line = normalize(raw).trim();
@@ -414,12 +443,12 @@ function parseLine(raw){
     name = tokens.slice(0, i+1).join(" ");
     if(!name) return null;                     // 数字だけの行は捨てる
     if(trail.length >= 4){                     // 原価計算・集計の行とみなし取込しない
-      return { name, unit:"", qty:1, price:0, flag:true, bad:true };
+      return { name, unit:"", qty:1, price:0, flag:true, bad:true, spec:"" };
     }
     if(trail.length === 0){
       // 単位なし＆数字なし。英大文字を含む行（品番・JIS番号等）は親行の可能性があるためOFFにしない
       const hasUpper = /[A-Z]/.test(name);
-      return { name, unit:"", qty:1, price:0, flag:true, bad: !hasUpper };
+      return { name, unit:"", qty:1, price:0, flag:true, bad: !hasUpper, spec:"" };
     }
     if(trail.length === 3){ qty = trail[0]; price = trail[1]; amount = trail[2]; }
     else if(trail.length === 2){
@@ -447,7 +476,9 @@ function parseLine(raw){
     }
   }
 
-  return { name, unit, qty, price, flag, bad };
+  /* 品目名称末尾の規格パターンを規格名称に自動分離 */
+  const sp = splitNameSpec(name);
+  return { name: sp.name, unit, qty, price, flag, bad, spec: sp.spec };
 }
 
 /* ===== 状態 ===== */
@@ -486,7 +517,7 @@ function runParse(){
     const drop = junk || p.bad;
     if(drop) junkCount++;
     out.push({ include: !drop, major:dMajor, mid:dMid,
-      name:p.name, spec:"", unit:p.unit, qty:p.qty, price:p.price, flag:p.flag });
+      name:p.name, spec:p.spec || "", unit:p.unit, qty:p.qty, price:p.price, flag:p.flag });
   });
   /* 〃／仝（ditto）を直前の行の単位で置換 */
   let lastUnit = "";
