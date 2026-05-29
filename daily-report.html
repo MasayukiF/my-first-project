@@ -547,7 +547,7 @@
     if (!name) { alert('名前を選択してください'); return; }
     if (!date) { alert('日付を入力してください'); return; }
 
-    const header = `(i) 日報　名前：${name}　日付：${date}`;
+    const header = `(i) 【日報 自動投稿】\n名前：${name}　日付：${date}`;
     let body = '';
 
     if (currentRole === 'gensya') {
