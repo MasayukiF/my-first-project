@@ -185,6 +185,29 @@
         <kbd>Ctrl</kbd>+<kbd>C</kbd>（コピー）→ 下の枠に <kbd>Ctrl</kbd>+<kbd>V</kbd>（貼り付け）。<br>
         <b>全選択できないPDFは、明細の表だけを部分コピーすればOKです（むしろ余計な行が入らずキレイです）。</b>
       </p>
+      <details class="spec" style="margin:8px 0 12px;">
+        <summary>画像PDF（スキャン・FAX）でコピーできない時の対処</summary>
+        <div class="sbody">
+          <p style="font-size:13px;margin-top:8px;">
+            画像のPDFは文字をコピーできません。次のいずれかでテキスト化してから、上の枠に貼り付けてください：
+          </p>
+          <ol class="steps">
+            <li><b>生成AIに頼む（推奨）</b>：
+              claude.ai / ChatGPT / Gemini にPDFをアップロードし、こう聞きます：
+              <div style="margin:6px 0;padding:8px 12px;background:var(--warn);border-left:3px solid var(--warn-line);border-radius:4px;font-size:13px;">
+                この見積書の明細表を、1行に「品名 数量 単位 単価 金額」の順でスペース区切りのテキストにして書き出してください。
+              </div>
+              返ってきたテキストを上の枠に貼り付けて「自動で表に変換」。
+            </li>
+            <li><b>Adobe Acrobat の OCR機能</b>：
+              PDFを開いて「ファイル → テキスト認識」または「PDFを編集」で文字化 → コピー</li>
+            <li><b>コード君に渡す</b>：
+              将行さんにPDFを送って「テキスト化して」とお願いしてもOK</li>
+            <li><b>石田データサービスへ外注</b>：
+              手書き混じり・複雑なレイアウト・大量ページのPDFは外注ルートが確実です</li>
+          </ol>
+        </div>
+      </details>
       <textarea id="srcText" placeholder="ここに見積PDFの本文を貼り付けてください…&#10;&#10;（PDFが画像スキャンの場合は文字をコピーできません。その場合は表に直接入力するか、石田データサービスへの外注分で対応します）"></textarea>
       <div class="btnbar">
         <button class="btn btn-main" id="parseBtn">▶ 自動で表に変換</button>
