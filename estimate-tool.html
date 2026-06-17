@@ -83,6 +83,12 @@
     border-radius:5px;cursor:pointer;padding:3px 6px;font-size:11px;font-weight:700;
     font-family:inherit;white-space:nowrap;}
   .mergebtn:hover{background:#fbeec6;}
+  .mergebtn+.mergebtn{margin-left:3px;}
+  table.grid tr.picktarget{cursor:pointer;}
+  table.grid tr.picktarget td{background:#eaf2fb;}
+  table.grid tr.picksrc td{background:#dfeede;}
+  .pickbtn{background:#e3eefb;border-color:var(--blue);color:var(--blue-d);}
+  .pickbtn:hover{background:#cfe1f7;}
 
   .summary{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px;font-size:14px;}
   .summary .box{background:#f4f7fa;border:1px solid var(--line);border-radius:7px;
@@ -127,7 +133,7 @@
     <div class="f"><span class="n">1</span><b>案件情報</b>分類の既定値を入力</div>
     <div class="f"><span class="n">2</span><b>貼り付け</b>PDFの本文をコピペ</div>
     <div class="f"><span class="n">3</span><b>確認・修正</b>表で中身をチェック</div>
-    <div class="f"><span class="n">4</span><b>CSV出力</b>本丸へ取込</div>
+    <div class="f"><span class="n">4</span><b>本丸へ</b>列コピー または CSV取込</div>
   </div>
 
   <!-- STEP1 -->
@@ -164,6 +170,16 @@
         </div>
       </div>
       <div class="hint" style="margin-top:8px;">※ ここで入れた値は、変換した全行にあらかじめ入ります。行ごとに表で修正もできます。</div>
+      <div style="margin-top:12px;padding:10px 12px;background:#f4f7fa;border:1px solid var(--line);border-radius:6px;">
+        <div class="fld" style="margin-bottom:6px;">入力の種類</div>
+        <label style="font-size:13px;cursor:pointer;display:block;margin-bottom:4px;">
+          <input type="radio" name="srcMode" value="quote" checked> <b>業者見積</b>（単価・金額あり → そのまま取り込む）
+        </label>
+        <label style="font-size:13px;cursor:pointer;display:block;">
+          <input type="radio" name="srcMode" value="naiyaku"> <b>内訳書・拾い</b>（単価なし → 価格と歩掛は本丸マスタから）
+        </label>
+        <div class="hint" style="margin-top:4px;">内訳書を選ぶと、単価・金額のコピーを隠して「品目名称／規格名称／単位／数量」だけに絞ります。</div>
+      </div>
       <div style="margin-top:12px;padding:10px 12px;background:#f4f7fa;border:1px solid var(--line);border-radius:6px;">
         <label style="font-size:13px;cursor:pointer;display:flex;align-items:flex-start;gap:8px;">
           <input type="checkbox" id="hankakuMode" style="margin-top:3px;">
@@ -241,7 +257,7 @@
         <button class="btn btn-sub" id="allOn">全行ON</button>
         <button class="btn btn-sub" id="allOff">全行OFF</button>
         <button class="btn btn-sub" id="mergeAll" title="黄色（自動判定の自信が低い）行のうち、説明だけの行を、最寄りの商品行の規格名称にまとめて削除します">↑黄色行を一括で規格に統合</button>
-        <span class="muted">黄色の行は自動判定の自信が低い行です。金額が合っているか確認してください。</span>
+        <span class="muted">黄色の行は自動判定の自信が低い行です。説明だけの行は <b>↑</b>（すぐ上）・<b>↓</b>（すぐ下）・<b>→選択</b>（寄せ先を自分で選ぶ）で規格名称に統合できます。</span>
       </div>
 
       <div class="tablewrap">
@@ -283,9 +299,33 @@
 
   <!-- STEP4 -->
   <div class="card">
-    <h2><span class="step">4</span>CSV出力 → 本丸EXv2へ取込</h2>
+    <h2><span class="step">4</span>本丸EXv2へ取込（列コピー または CSV）</h2>
     <div class="body">
-      <p style="font-size:13px;">取込対象（チェックの付いた行）だけをCSVに書き出します。</p>
+
+      <div style="background:#eef5ff;border:1px solid #9cc2ea;border-radius:7px;padding:12px 14px;margin-bottom:14px;">
+        <b style="color:var(--blue-d);">方法A：列ごとにコピー（本丸へ縦1列で貼り付け）</b>
+        <p style="font-size:13px;margin:6px 0;">
+          ボタンを押すと、その列だけを縦1列でコピーします。本丸EXv2の対応する列に
+          そのまま貼り付けてください。どの列も <b>同じ <span id="colRowCount">0</span> 行</b> で
+          揃うので、列ごとに貼っても <b>行ズレの心配がありません</b>。
+        </p>
+        <div class="btnbar" id="colCopyBar">
+          <button class="btn btn-sub" data-col="name">① 品目名称</button>
+          <button class="btn btn-sub" data-col="spec">② 規格名称</button>
+          <button class="btn btn-sub" data-col="unit">③ 単位</button>
+          <button class="btn btn-sub" data-col="qty">④ 数量</button>
+          <button class="btn btn-sub colQuoteOnly" data-col="price">⑤ 単価</button>
+          <button class="btn btn-sub colQuoteOnly" data-col="amount">⑥ 金額</button>
+          <span class="muted" id="colCopyMsg"></span>
+        </div>
+        <div class="hint" style="margin-top:6px;">
+          ※ STEP1の「電気仕様：半角に変換」にチェックすると、半角カタカナでコピーされます。
+        </div>
+      </div>
+
+      <div style="border-top:1px dashed var(--line);margin:4px 0 12px;"></div>
+      <b style="color:var(--navy);">方法B：CSVファイルで取り込む</b>
+      <p style="font-size:13px;margin-top:6px;">取込対象（チェックの付いた行）だけをCSVに書き出します。</p>
       <div class="btnbar">
         <button class="btn btn-main" id="dlSjis">⬇ 本丸用CSV（Shift-JIS）</button>
         <button class="btn btn-sub" id="dlUtf8">⬇ CSV（UTF-8・Excel確認用）</button>
@@ -353,7 +393,8 @@
 
   <footer>
     協電機工株式会社  — 社内DXツール ／ 積算取込ツール<br>
-    写真や見積データは端末内のブラウザだけで処理され、外部には送信されません。
+    写真や見積データは端末内のブラウザだけで処理され、外部には送信されません。<br>
+    <span class="muted">バージョン: 2026-06-17（列ごとコピー・内訳書モード対応）</span>
   </footer>
 
 </div>
@@ -413,6 +454,53 @@ const SPEC_SUFFIX_RE = /[0-9]+(?:\.[0-9]+)?(?:MPa|kHz|kW|kV|kg|mm|cm|°C|Hz|馬�
 const SIZE_DIM_RE    = /[0-9]+(?:\.[0-9]+)?(?:×[0-9]+(?:\.[0-9]+)?){1,}/;
 const HAS_JP_RE      = /[぀-ヿ一-鿿ｦ-ﾟ]/;
 
+/* 機器番号タグ（PAC-01・MAC-03-1・S-1 など 英字+数字＋ハイフンの管理番号） */
+const TAG_RE = /^[A-Za-z]{1,4}-?[0-9]+(?:-[0-9]+)*$/;
+/* 型番（メーカー型番。英大文字を含み数字も含む。SZVYP2800NB / BHFP22P90 / K-KSV335GHB 等）
+   ・英字3桁以上＋数字、または「英字-英数字」の形を型番とみなす
+   ・日本語・全角を含むものは型番にしない（日本語の語をうっかり型番扱いしない安全策） */
+function isModelToken(t){
+  if(!t) return false;
+  if(HAS_JP_RE.test(t)) return false;          // 日本語を含むものは型番ではない
+  if(/[（）()「」【】]/.test(t)) return false;   // (受注生産品) 等は型番ではない
+  if(!/[A-Z]/.test(t)) return false;           // 英大文字を含むこと
+  if(!/[0-9]/.test(t)) return false;           // 数字を含むこと
+  if(TAG_RE.test(t)) return false;             // PAC-01 等の機器番号タグは型番ではない（タグは別扱い）
+  // 英字3字以上連続を含む（SZVYP…）か、ハイフン区切りの英数（K-KSV335GHB）
+  return /[A-Z]{3,}/.test(t) || /^[A-Z]+-[A-Z0-9]+/i.test(t);
+}
+
+/* ダイキン等の「機器番号タグ ＋ 日本語の説明 ＋ メーカー型番 (＋括弧注記)」を
+   「型番＝品名／説明＝規格」に分離する。中野さん（PAC-01等）の要望に対応。
+   タグ（PAC-01）が先頭にあれば、タグ＋型番を品名に残し、日本語説明と括弧注記を規格へ寄せる。 */
+function splitModelNameSpec(name){
+  const tokens = name.split(/\s+/).filter(Boolean);
+  if(tokens.length < 2) return null;
+  // 先頭が機器番号タグ（PAC-01・MAC-03 等）か
+  const hasTag = TAG_RE.test(tokens[0]);
+  // 発火条件を限定して既存ケースの誤爆を避ける：
+  //   (a) 先頭が機器番号タグ（PAC-01 …） … タグの次以降に型番がある形
+  //   (b) 先頭トークン自体がメーカー型番（BHFP22P90 室外機… / K-KSV335GHB 防振架台）
+  // ↑これにより「WHM取付板 MP-31KA (…」のように日本語で始まり型番が中間にある盤の行は対象外。
+  const startIdx = hasTag ? 1 : 0;
+  if(!hasTag && !isModelToken(tokens[0])) return null;
+  // 採用する型番の位置（タグの直後＝先頭側を採用。説明を規格へ寄せたいので最初の型番を品名に）
+  let modelAt = -1;
+  for(let i = startIdx; i < tokens.length; i++){
+    if(isModelToken(tokens[i])){ modelAt = i; break; }
+  }
+  if(modelAt < 0) return null;
+  // 型番より前の説明（タグは除く）と、型番より後ろの注記を規格へ
+  const before = tokens.slice(startIdx, modelAt);
+  const after  = tokens.slice(modelAt + 1);
+  const descTokens = before.concat(after);
+  // 説明側に日本語が無い＝分離しても意味が薄い／誤爆の恐れ → やめる
+  if(!descTokens.some(t => HAS_JP_RE.test(t))) return null;
+  const namePart = (hasTag ? tokens[0] + " " : "") + tokens[modelAt];
+  const specPart = descTokens.join(" ");
+  return { name: namePart.trim(), spec: specPart.trim() };
+}
+
 function splitNameSpec(name){
   if(!name) return { name:"", spec:"" };
   const tokens = name.split(/\s+/).filter(Boolean);
@@ -429,11 +517,17 @@ function splitNameSpec(name){
       break;
     }
   }
-  if(splitAt < 1) return { name, spec:"" };
-  const namePart = tokens.slice(0, splitAt).join(" ");
-  // 品名側に日本語が残らない場合は分離しない（例：「日東工業 S-1.屋外…」の誤分離防止）
-  if(!HAS_JP_RE.test(namePart)) return { name, spec:"" };
-  return { name: namePart, spec: tokens.slice(splitAt).join(" ") };
+  if(splitAt >= 1){
+    const namePart = tokens.slice(0, splitAt).join(" ");
+    // 品名側に日本語が残らない場合は分離しない（例：「日東工業 S-1.屋外…」の誤分離防止）
+    if(HAS_JP_RE.test(namePart)){
+      return { name: namePart, spec: tokens.slice(splitAt).join(" ") };
+    }
+  }
+  // 既存ロジックで分離できなかった場合、型番ベースの分離（ダイキンPAC系・B-4自火報系）を試す
+  const m = splitModelNameSpec(name);
+  if(m) return m;
+  return { name, spec:"" };
 }
 
 /* ===== 1行を解析 ===== */
@@ -504,9 +598,57 @@ function parseLine(raw){
   return { name: sp.name, unit, qty, price, flag, bad, spec: sp.spec };
 }
 
+/* ===== タブ区切り（Excelの列・AI整形のタブ出力）を1行ぶんとして解析 ===== */
+/* 名称・摘要が「列」として分かれている内訳書/拾い表に最適。
+   タブ区切りなら名称と摘要の境界が確定情報なので、スペース推定より正確に分けられる。
+   タブを含まない通常の見積PDF貼り付けには使わない（runParseで振り分け）。 */
+function parseCells(raw){
+  const cells = raw.split("\t").map(c => normalize(c).trim()).filter(c => c !== "");
+  if(cells.length < 2) return null;            // 実質1セルならタブ区切り扱いしない
+  const texts = [], nums = [];
+  let unit = "";
+  cells.forEach(c=>{
+    if(UNITSET.has(c)){ if(!unit) unit = c; }   // 単位だけのセル
+    else if(isNumTok(c)){ nums.push(toNum(c)); }
+    else { texts.push(c); }
+  });
+  if(texts.length === 0) return null;          // 名称が無ければ捨てる
+  let name = texts[0];
+  let spec = texts.slice(1).join(" ");         // 2列目以降のテキスト＝摘要/規格
+  let qty = 0, price = 0, amount = 0, flag = false;
+  if(nums.length >= 3){ qty = nums[0]; price = nums[1]; amount = nums[2]; }
+  else if(nums.length === 2){ qty = nums[0]; price = nums[1]; }
+  else if(nums.length === 1){ qty = nums[0]; }
+  else { flag = true; }
+  if(!qty) qty = 1;
+  if(qty > 0 && amount > 0 && !price) price = Math.round(amount / qty);
+  if(qty > 0 && price > 0 && !amount) amount = qty * price;
+  if(qty > 0 && price > 0 && amount > 0 && Math.abs(qty*price - amount) > Math.max(2, amount*0.01)){
+    price = Math.round(amount / qty); flag = true;
+  }
+  if(!price) flag = true;                       // 単価0（内訳など）は黄色で確認を促す
+  // 摘要セルが無く、名称末尾に規格が埋まっている見積などは従来の自動分離で補う
+  if(!spec){ const sp = splitNameSpec(name); name = sp.name; spec = sp.spec; }
+  return { name, spec, unit, qty, price, flag, bad:false };
+}
+
 /* ===== 状態 ===== */
 let rows = [];
+let pickFrom = null;          // 統合先指定モード：移動元の行index（null＝通常モード）
 const $ = id => document.getElementById(id);
+
+/* 入力の種類：業者見積（単価あり）／内訳書（単価なし） */
+function isNaiyaku(){
+  const m = document.querySelector('input[name="srcMode"]:checked');
+  return !!(m && m.value === "naiyaku");
+}
+/* 半角変換（STEP1のチェックに連動。CSV・列コピーで共用） */
+function hankakuConv(){
+  const hankaku = $("hankakuMode") && $("hankakuMode").checked;
+  return (hankaku && window.Encoding)
+    ? s => Encoding.toHankakuCase(Encoding.toHankanaCase(String(s==null?"":s)))
+    : s => String(s==null?"":s);
+}
 
 function blankRow(){
   return { include:true, major:$("defMajor").value.trim(), mid:$("defMid").value.trim(),
@@ -534,7 +676,7 @@ function runParse(){
   let junkCount = 0;
   lines.forEach(ln=>{
     if(!ln.trim()) return;
-    const p = parseLine(ln);
+    const p = (ln.indexOf("\t") >= 0) ? parseCells(ln) : parseLine(ln);
     if(!p) return;
     const junk = JUNK.test(p.name.replace(/\s/g,"")) || JUNK.test(ln.replace(/\s/g,""));
     const drop = junk || p.bad;
@@ -574,11 +716,25 @@ function render(){
     return;
   }
   let html = "";
+  const naiyaku = isNaiyaku();
   rows.forEach((r,i)=>{
-    const cls = (r.include ? "" : "off ") + (r.flag ? "flag" : "");
-    const mergeBtn = (r.flag && !r.price)
-      ? '<button class="mergebtn" data-merge="'+i+'" title="この行を最寄りの商品行の規格名称に統合して削除">↑統合</button>'
-      : '';
+    const cls = (r.include ? "" : "off ") + (r.flag ? "flag" : "")
+      + ((pickFrom != null && pickFrom !== i) ? " picktarget" : "")
+      + (pickFrom === i ? " picksrc" : "");
+    let mergeCell = "";
+    if(pickFrom != null){
+      // 統合先指定モード：移動元以外の各行に「ここへ」ボタンを出す
+      mergeCell = (pickFrom === i)
+        ? '<span class="muted" style="font-size:11px;">移動元</span>'
+        : '<button class="mergebtn pickbtn" data-pick="'+i+'" title="この行の規格名称へ統合する">ここへ</button>';
+    } else if(r.flag && !r.price && (!naiyaku || !r.unit)){
+      // 説明行（自信が低く単価0）：上・下・先を指定して統合できる
+      // 内訳書モードでは全行が単価0になるため、単位が無い＝説明だけの行に限って表示する
+      mergeCell =
+          '<button class="mergebtn" data-merge="'+i+'" data-dir="up"   title="すぐ上の商品行の規格名称へ統合">↑</button>'
+        + '<button class="mergebtn" data-merge="'+i+'" data-dir="down" title="すぐ下の商品行の規格名称へ統合">↓</button>'
+        + '<button class="mergebtn" data-pickfrom="'+i+'" title="統合先の行を自分で選ぶ">→選択</button>';
+    }
     html += '<tr class="'+cls.trim()+'" data-i="'+i+'">'
       + '<td class="c"><input type="checkbox" data-i="'+i+'" data-f="include"'+(r.include?" checked":"")+'></td>'
       + cell(i,"major",r.major) + cell(i,"mid",r.mid)
@@ -586,7 +742,7 @@ function render(){
       + cell(i,"unit",r.unit,"",true)
       + cell(i,"qty",r.qty,"num") + cell(i,"price",r.price,"num")
       + '<td class="amt" data-amt="'+i+'">'+fmt(r.qty*r.price)+'</td>'
-      + '<td class="c">'+mergeBtn+'</td>'
+      + '<td class="c" style="white-space:nowrap;">'+mergeCell+'</td>'
       + '<td class="c"><button class="delbtn" data-del="'+i+'">×</button></td>'
       + '</tr>';
   });
@@ -605,6 +761,7 @@ function refreshSummary(){
   $("sumRows").textContent = n;
   $("sumAmt").textContent  = fmt(amt);
   $("sumTax").textContent  = fmt(amt*1.1);
+  const cc = $("colRowCount"); if(cc) cc.textContent = n;
 }
 
 /* ===== 表の編集（イベント委譲） ===== */
@@ -633,38 +790,76 @@ $("tbody").addEventListener("change", e=>{
 });
 $("tbody").addEventListener("click", e=>{
   if(e.target.dataset.del != null){
+    if(pickFrom != null){ pickFrom = null; }   // 削除したら指定モードは解除
     rows.splice(+e.target.dataset.del, 1);
     render();
+    return;
   }
   if(e.target.dataset.merge != null){
-    mergeRowToSpec(+e.target.dataset.merge);
+    mergeRowToSpec(+e.target.dataset.merge, e.target.dataset.dir || "auto");
+    return;
+  }
+  if(e.target.dataset.pickfrom != null){
+    // 統合先指定モードに入る（移動元を記憶し、各行に「ここへ」を出す）
+    pickFrom = +e.target.dataset.pickfrom;
+    render();
+    return;
+  }
+  if(e.target.dataset.pick != null){
+    // 指定モードで統合先の行を選んだ
+    mergeRowToTarget(pickFrom, +e.target.dataset.pick);
+    pickFrom = null;
+    render();
+    return;
   }
 });
 
 /* ===== 規格名称への統合 ===== */
-function findNearestProductRow(idx, skipSet){
-  for(let i = idx - 1; i >= 0; i--){
-    if(skipSet && skipSet.has(i)) continue;
-    if(rows[i].price > 0 || rows[i].unit) return i;
+/* dir: "up"=すぐ上の商品行 / "down"=すぐ下の商品行 / "auto"=上を優先し無ければ下（従来挙動） */
+function findProductRow(idx, dir, skipSet){
+  const ok = i => (!skipSet || !skipSet.has(i)) && (rows[i].price > 0 || rows[i].unit);
+  if(dir === "down"){
+    for(let i = idx + 1; i < rows.length; i++){ if(ok(i)) return i; }
+    return -1;
   }
-  for(let i = idx + 1; i < rows.length; i++){
-    if(skipSet && skipSet.has(i)) continue;
-    if(rows[i].price > 0 || rows[i].unit) return i;
+  if(dir === "up"){
+    for(let i = idx - 1; i >= 0; i--){ if(ok(i)) return i; }
+    return -1;
   }
+  // auto（従来の findNearestProductRow と同じ：上→下）
+  for(let i = idx - 1; i >= 0; i--){ if(ok(i)) return i; }
+  for(let i = idx + 1; i < rows.length; i++){ if(ok(i)) return i; }
   return -1;
 }
-function mergeRowToSpec(idx){
+function findNearestProductRow(idx, skipSet){   // 後方互換（一括統合が使用）
+  return findProductRow(idx, "auto", skipSet);
+}
+function mergeTextOf(r){
+  return ((r.name || "").trim() + (r.spec ? " " + r.spec : "")).trim();
+}
+function mergeRowToSpec(idx, dir){
   const me = rows[idx];
-  const myText = ((me.name || "").trim() + (me.spec ? " " + me.spec : "")).trim();
+  const myText = mergeTextOf(me);
   if(!myText){ rows.splice(idx, 1); render(); return; }
-  const target = findNearestProductRow(idx);
+  const target = findProductRow(idx, dir || "auto");
   if(target < 0){
-    alert("統合先の商品行（単価>0または単位あり）が見つかりません。");
+    alert(dir === "up"   ? "すぐ上に統合できる商品行（単価>0または単位あり）がありません。"
+        : dir === "down" ? "すぐ下に統合できる商品行（単価>0または単位あり）がありません。"
+        : "統合先の商品行（単価>0または単位あり）が見つかりません。");
     return;
   }
   rows[target].spec = (rows[target].spec ? rows[target].spec + " " : "") + myText;
   rows.splice(idx, 1);
   render();
+}
+/* 指定した統合先 targetIdx の規格名称へ srcIdx を寄せて、srcIdx を削除 */
+function mergeRowToTarget(srcIdx, targetIdx){
+  if(srcIdx == null || targetIdx == null || srcIdx === targetIdx) return;
+  const myText = mergeTextOf(rows[srcIdx]);
+  if(myText){
+    rows[targetIdx].spec = (rows[targetIdx].spec ? rows[targetIdx].spec + " " : "") + myText;
+  }
+  rows.splice(srcIdx, 1);   // src削除でtargetのindexは（src<targetなら）1つ前にずれるが、再renderで解決
 }
 function mergeAllFlaggedToSpec(){
   const toRemove = new Set();
@@ -727,10 +922,7 @@ function csvCell(v){
   return /[",\r\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v;
 }
 function buildCSV(){
-  const hankaku = $("hankakuMode") && $("hankakuMode").checked;
-  const conv = (hankaku && window.Encoding)
-    ? s => Encoding.toHankakuCase(Encoding.toHankanaCase(String(s==null?"":s)))
-    : s => String(s==null?"":s);
+  const conv = hankakuConv();
   const costRate = $("defCostRate") ? $("defCostRate").value.trim() : "";
   const sellRate = $("defSellRate") ? $("defSellRate").value.trim() : "";
   const lines = [HEADERS.join(",")];
@@ -782,6 +974,52 @@ $("dlUtf8").onclick = ()=>{
   downloadCSV(buildCSV(), fileName(), false);
   $("dlMsg").textContent = n + "行を UTF-8 のCSVで出力しました。";
 };
+/* ===== 列ごとにコピー（本丸へ縦1列で貼り付け） ===== */
+function columnValues(col){
+  const conv = hankakuConv();
+  return rows.filter(r=>r.include).map(r=>{
+    switch(col){
+      case "name":   return conv(r.name);
+      case "spec":   return conv(r.spec);
+      case "unit":   return conv(r.unit);
+      case "qty":    return r.qty;
+      case "price":  return r.price;
+      case "amount": return Math.round(r.qty * r.price);
+      default:       return "";
+    }
+  });
+}
+async function copyText(text){
+  try{ await navigator.clipboard.writeText(text); return true; }
+  catch(e){
+    const ta = document.createElement("textarea");
+    ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    let ok = false; try{ ok = document.execCommand("copy"); }catch(_){}
+    ta.remove(); return ok;
+  }
+}
+const COL_LABEL = {name:"品目名称", spec:"規格名称", unit:"単位", qty:"数量", price:"単価", amount:"金額"};
+$("colCopyBar").addEventListener("click", async e=>{
+  const col = e.target.dataset.col;
+  if(!col) return;
+  const vals = columnValues(col);
+  if(vals.length === 0){ $("colCopyMsg").textContent = "取込対象の行がありません。"; return; }
+  const ok = await copyText(vals.join("\n"));
+  $("colCopyMsg").textContent = ok
+    ? "「" + COL_LABEL[col] + "」" + vals.length + "行をコピー。本丸の「" + COL_LABEL[col] + "」列に貼り付けてください。"
+    : "コピーできませんでした。お手数ですが手動で選択してください。";
+});
+
+/* ===== 入力の種類トグル ===== */
+function applyMode(){
+  const naiyaku = isNaiyaku();
+  document.querySelectorAll(".colQuoteOnly").forEach(b=>{ b.style.display = naiyaku ? "none" : ""; });
+  render();   // 統合ボタンの出し分け（内訳モードは単位なしの説明行のみ）を反映
+}
+document.querySelectorAll('input[name="srcMode"]').forEach(el=> el.addEventListener("change", applyMode));
+applyMode();
+
 $("dlSample").onclick = ()=>{
   const sample = [
     HEADERS.join(","),
