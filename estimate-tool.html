@@ -257,7 +257,7 @@
         <button class="btn btn-sub" id="allOn">全行ON</button>
         <button class="btn btn-sub" id="allOff">全行OFF</button>
         <button class="btn btn-sub" id="mergeAll" title="黄色（自動判定の自信が低い）行のうち、説明だけの行を、最寄りの商品行の規格名称にまとめて削除します">↑黄色行を一括で規格に統合</button>
-        <span class="muted">黄色の行は自動判定の自信が低い行です。説明だけの行は <b>↑</b>（すぐ上）・<b>↓</b>（すぐ下）・<b>→選択</b>（寄せ先を自分で選ぶ）で規格名称に統合できます。</span>
+        <span class="muted">黄色の行は自動判定の自信が低い行です。説明だけの行は <b>↑</b>（すぐ上）・<b>↓</b>（すぐ下）・<b>→選択</b>（寄せ先を自分で選ぶ）で規格名称に統合できます。<b>白い行でも「→選択」で別の行の規格名称へ寄せられます。</b></span>
       </div>
 
       <div class="tablewrap">
@@ -394,7 +394,7 @@
   <footer>
     協電機工株式会社  — 社内DXツール ／ 積算取込ツール<br>
     写真や見積データは端末内のブラウザだけで処理され、外部には送信されません。<br>
-    <span class="muted">バージョン: 2026-06-17（列ごとコピー・内訳書モード対応）</span>
+    <span class="muted">バージョン: 2026-06-18（全角データ対応・能力情報を規格へ・白行も規格へ寄せ）</span>
   </footer>
 
 </div>
@@ -433,8 +433,15 @@ const ROW_RE = new RegExp(
 );
 
 /* ===== 文字正規化 ===== */
+/* PDFやメーカー見積を縦展開でコピーすると、全角の英字（ＺＥＡＳ）・全角カナ（ｋＷ）・
+   半角カナ（ﾊﾟｯｹｰｼﾞ）・全角括弧（（最大））が混ざる。これらが半角と別物のまま残ると
+   型番分離（SZVYP2800NB）や単位判定が効かず「読み取れません」につながる。
+   まず NFKC で全角英数・記号・互換文字を半角の標準形にそろえてから、従来の置換を行う。
+   ※ NFKC は㎡→m2・㎥→m3（単位リストに有り）・①→1 などにも作用する点に注意。 */
 function normalize(t){
-  return String(t)
+  let s = String(t);
+  try{ s = s.normalize("NFKC"); }catch(e){ /* 古い環境では素通り */ }
+  return s
     .replace(/[０-９]/g, d => String.fromCharCode(d.charCodeAt(0)-0xFEE0))
     .replace(/[，]/g, ",")
     .replace(/　/g, " ")
@@ -540,7 +547,7 @@ function parseLine(raw){
   ROW_RE.lastIndex = 0;
   while((m = ROW_RE.exec(line)) !== null){ last = m; }
 
-  let name = "", unit = "", qty = 0, price = 0, amount = 0, flag = false, bad = false;
+  let name = "", unit = "", qty = 0, price = 0, amount = 0, flag = false, bad = false, tailSpec = "";
 
   if(last){
     qty  = toNum(last[1]);
@@ -551,6 +558,12 @@ function parseLine(raw){
     else if(nums.length === 1){ amount = nums[0]; }
     else { flag = true; }
     if(nums.length >= 4) flag = true;          // 数字が多すぎる＝集計行の疑い
+    /* 「… 1 台 68,173,000 68,173,000 冷房能力 250 kW 暖房能力 280 kW」のように
+       金額のうしろに能力・仕様の説明文が続く1行詰めの見積に対応。
+       従来は金額より後ろを捨てていたため能力情報が消えていた（中野さんの指摘②）。
+       日本語を含む後続テキストがあれば規格名称へ寄せる。 */
+    const tail = line.slice(last.index + last[0].length).trim();
+    if(tail && HAS_JP_RE.test(tail)) tailSpec = tail;
   } else {
     /* 単位が見つからない：末尾の数字から推定（自信は低い） */
     const tokens = line.split(/\s+/).filter(Boolean);
@@ -595,7 +608,9 @@ function parseLine(raw){
 
   /* 品目名称末尾の規格パターンを規格名称に自動分離 */
   const sp = splitNameSpec(name);
-  return { name: sp.name, unit, qty, price, flag, bad, spec: sp.spec };
+  let spec = sp.spec;
+  if(tailSpec) spec = (spec ? spec + " " : "") + tailSpec;   // 金額のうしろの能力・仕様を規格へ
+  return { name: sp.name, unit, qty, price, flag, bad, spec };
 }
 
 /* ===== タブ区切り（Excelの列・AI整形のタブ出力）を1行ぶんとして解析 ===== */
@@ -734,6 +749,12 @@ function render(){
           '<button class="mergebtn" data-merge="'+i+'" data-dir="up"   title="すぐ上の商品行の規格名称へ統合">↑</button>'
         + '<button class="mergebtn" data-merge="'+i+'" data-dir="down" title="すぐ下の商品行の規格名称へ統合">↓</button>'
         + '<button class="mergebtn" data-pickfrom="'+i+'" title="統合先の行を自分で選ぶ">→選択</button>';
+    } else {
+      // 白色（自信あり）の行でも、規格へ寄せたい場面がある（中野さんの指摘③）。
+      // 例：能力情報が独立した白行で残ったとき、隣の商品行の規格名称へまとめたい。
+      // 行を消したくないだけの操作なので、寄せ先を選ぶ「→選択」だけを控えめに出す。
+      mergeCell =
+          '<button class="mergebtn" data-pickfrom="'+i+'" title="この行を別の行の規格名称へ寄せる（寄せ先を選ぶ）">→選択</button>';
     }
     html += '<tr class="'+cls.trim()+'" data-i="'+i+'">'
       + '<td class="c"><input type="checkbox" data-i="'+i+'" data-f="include"'+(r.include?" checked":"")+'></td>'
