@@ -260,6 +260,11 @@
         <span class="muted">黄色の行は自動判定の自信が低い行です。説明だけの行は <b>↑</b>（すぐ上）・<b>↓</b>（すぐ下）・<b>→選択</b>（寄せ先を自分で選ぶ）で規格名称に統合できます。<b>白い行でも「→選択」で別の行の規格名称へ寄せられます。</b></span>
       </div>
 
+      <div id="pickBanner" style="display:none;background:#eaf2fb;border:1px solid var(--blue);
+        border-radius:7px;padding:8px 12px;margin-top:8px;font-size:13px;color:var(--blue-d);">
+        <b>まとめ先を選んでください。</b> 寄せ先にしたい行の「<b>ここへ</b>」を押すと、その行の規格名称へまとまります。
+        やめるときは移動元の行の「<b>やめる</b>」を押してください。
+      </div>
       <div class="tablewrap">
         <table class="grid">
           <thead>
@@ -394,7 +399,7 @@
   <footer>
     協電機工株式会社  — 社内DXツール ／ 積算取込ツール<br>
     写真や見積データは端末内のブラウザだけで処理され、外部には送信されません。<br>
-    <span class="muted">バージョン: 2026-06-18（全角データ対応・能力情報を規格へ・白行も規格へ寄せ）</span>
+    <span class="muted">バージョン: 2026-06-19（全角データを必ず半角化・能力行を親へ自動統合・→選択にやめる導線）</span>
   </footer>
 
 </div>
@@ -441,12 +446,25 @@ const ROW_RE = new RegExp(
 function normalize(t){
   let s = String(t);
   try{ s = s.normalize("NFKC"); }catch(e){ /* 古い環境では素通り */ }
-  return s
+  /* NFKC が効かない／本番が旧版のままでも全角データを必ず読めるよう、
+     NFKC とは独立に全角→半角の明示置換も常にかける（二重がけは無害）。
+     ここが抜けていたため、本番（NFKC未反映の旧版）で ＺＥＡＳ・ｋＷ が
+     全角のまま残り、型番分離・能力判定が外れていた（中野さん指摘A）。 */
+  s = s
+    /* 全角英字 Ａ-Ｚ ａ-ｚ → 半角（ＺＥＡＳ → ZEAS） */
+    .replace(/[Ａ-Ｚａ-ｚ]/g, c => String.fromCharCode(c.charCodeAt(0)-0xFEE0))
+    /* 全角数字 ０-９ → 半角 */
     .replace(/[０-９]/g, d => String.fromCharCode(d.charCodeAt(0)-0xFEE0))
+    /* 全角の主要記号（括弧・カッコ・スラッシュ・ハイフン・ドット）→ 半角 */
+    .replace(/[（]/g,"(").replace(/[）]/g,")")
+    .replace(/[／]/g,"/").replace(/[．]/g,".")
+    .replace(/[－―ー]/g, m => m === "ー" ? "ー" : "-")  /* 長音符ーはカナなので残す、全角ハイフンのみ半角化 */
     .replace(/[，]/g, ",")
     .replace(/　/g, " ")
-    .replace(/[¥￥]/g, "")
-    .replace(/\t/g, " ");
+    .replace(/[¥￥]/g, "");
+  /* 半角カナ（ﾊﾟｯｹｰｼﾞ や ｋ相当の互換）は NFKC が無いと残るため簡易フォールド。
+     ｋＷ の ｋ は全角(FF4B)で上の英字置換で半角化済み。半角カナ濁点等の結合のみ補正。 */
+  return s.replace(/\t/g, " ");
 }
 function toNum(s){
   if(s==null) return 0;
@@ -458,6 +476,10 @@ const isNumTok = s => /^[0-9][0-9,]*(?:\.[0-9]+)?$/.test(String(s).trim());
 /* ===== 品目名称から規格名称を自動分離 ===== */
 /* 末尾に「数字＋スペック接尾辞」を持つトークンを見つけたら、そこから後ろを規格に切り出す */
 const SPEC_SUFFIX_RE = /[0-9]+(?:\.[0-9]+)?(?:MPa|kHz|kW|kV|kg|mm|cm|°C|Hz|馬力|回線|回路|寸|分|型|種|級|相|号|℃|A|V|W|m|t)$/;
+/* 能力行（ダイキン等の縦展開で型番行の直後に出る「冷房能力 250 kW」「暖房能力 280 kW」等）。
+   親（直前の型番／機器番号タグ行）の規格名称末尾へ自動統合する判定に使う（中野さん指摘B）。
+   単価0・単位なしの“説明だけの行”で、能力系のキーワードで始まるものに限定して誤爆を防ぐ。 */
+const CAPABILITY_RE = /^(?:冷房能力|暖房能力|能力|消費電力|電源|相数|圧縮機|定格|低圧|高圧|風量)/;
 const SIZE_DIM_RE    = /[0-9]+(?:\.[0-9]+)?(?:×[0-9]+(?:\.[0-9]+)?){1,}/;
 const HAS_JP_RE      = /[぀-ヿ一-鿿ｦ-ﾟ]/;
 
@@ -706,6 +728,36 @@ function runParse(){
     else if(r.unit){ lastUnit = r.unit; }
   });
 
+  /* 能力行の自動統合（中野さん指摘B）：
+     「冷房能力 250 kW」「暖房能力 280 kW」のように、型番／機器番号タグの商品行の
+     直後に続く“能力だけの行（単価0・単位なし）”を、直前の商品行の規格名称へまとめる。
+     - 直前に商品行（単価>0 または 単位あり）がある連続ブロックだけを対象にして誤爆を防ぐ。
+     - 統合した行は表から消す（中野さんが毎回手で寄せていた手間をなくす）。 */
+  /* 上から順に見て「能力行→直前の商品行」を記録し、元の並び順のまま親へ追記する。
+     （冷房能力→暖房能力 の順序を保つため。下から消すと順序が逆になる） */
+  const capParentOf = (i) => {
+    for(let j = i - 1; j >= 0; j--){
+      const pr = out[j];
+      if(pr.price > 0 || pr.unit) return j;                        // 商品行＝親
+      if((!pr.unit) && (!pr.price) && CAPABILITY_RE.test((pr.name||"").trim())) continue; // 能力行は飛ばす
+      return -1;                                                   // それ以外の説明行が挟まれたら親なし
+    }
+    return -1;
+  };
+  const capRemove = [];
+  for(let i = 1; i < out.length; i++){
+    const r = out[i];
+    if(r.unit || r.price || !CAPABILITY_RE.test((r.name || "").trim())) continue;
+    const parent = capParentOf(i);
+    if(parent < 0) continue;
+    const myText = ((r.name || "").trim() + (r.spec ? " " + r.spec : "")).trim();
+    out[parent].spec = (out[parent].spec ? out[parent].spec + " " : "") + myText;
+    capRemove.push(i);
+  }
+  const mergedCap = capRemove.length;
+  capRemove.sort((a,b)=>b-a).forEach(i => out.splice(i, 1));       // 末尾から削除して添字ズレを防ぐ
+  const capMsg = mergedCap ? "（能力行" + mergedCap + "行を直前の商品の規格名称へ自動でまとめました）" : "";
+
   if(out.length === 0){
     $("parseMsg").textContent =
       "明細行を読み取れませんでした。表に直接入力してください。" + cutMsg;
@@ -713,6 +765,7 @@ function runParse(){
     $("parseMsg").textContent =
       out.length + "行を読み取りました。"
       + (junkCount ? "（うち" + junkCount + "行は合計・見出し・説明行などと判断し取込OFF）" : "")
+      + capMsg
       + cutMsg;
   }
   rows = out;
@@ -724,6 +777,8 @@ function fmt(n){ return Math.round(n).toLocaleString("ja-JP"); }
 
 function render(){
   const tb = $("tbody");
+  const banner = $("pickBanner");
+  if(banner) banner.style.display = (pickFrom != null) ? "" : "none";
   if(rows.length === 0){
     tb.innerHTML = '<tr><td colspan="11" style="padding:22px;text-align:center;color:#889;">'
       + 'STEP2でPDFを貼り付けて「自動で表に変換」を押すと、ここに明細が表示されます。</td></tr>';
@@ -738,17 +793,19 @@ function render(){
       + (pickFrom === i ? " picksrc" : "");
     let mergeCell = "";
     if(pickFrom != null){
-      // 統合先指定モード：移動元以外の各行に「ここへ」ボタンを出す
+      // 統合先指定モード：移動元の行には「やめる」、それ以外の各行に「ここへ」を出す
       mergeCell = (pickFrom === i)
-        ? '<span class="muted" style="font-size:11px;">移動元</span>'
+        ? '<span class="muted" style="font-size:11px;display:block;margin-bottom:2px;">移動元</span>'
+          + '<button class="mergebtn" data-cancelpick="1" title="統合をやめて元の表示に戻す">やめる</button>'
         : '<button class="mergebtn pickbtn" data-pick="'+i+'" title="この行の規格名称へ統合する">ここへ</button>';
     } else if(r.flag && !r.price && (!naiyaku || !r.unit)){
       // 説明行（自信が低く単価0）：上・下・先を指定して統合できる
       // 内訳書モードでは全行が単価0になるため、単位が無い＝説明だけの行に限って表示する
+      // ↑（すぐ上の親へまとめる）が中野さんの本命。いちばん押しやすいよう先頭・文言を明確に。
       mergeCell =
-          '<button class="mergebtn" data-merge="'+i+'" data-dir="up"   title="すぐ上の商品行の規格名称へ統合">↑</button>'
-        + '<button class="mergebtn" data-merge="'+i+'" data-dir="down" title="すぐ下の商品行の規格名称へ統合">↓</button>'
-        + '<button class="mergebtn" data-pickfrom="'+i+'" title="統合先の行を自分で選ぶ">→選択</button>';
+          '<button class="mergebtn" data-merge="'+i+'" data-dir="up"   title="すぐ上の商品行（親）の規格名称へまとめる。能力行はこれでOK">↑上へまとめ</button>'
+        + '<button class="mergebtn" data-merge="'+i+'" data-dir="down" title="すぐ下の商品行の規格名称へまとめる">↓下へ</button>'
+        + '<button class="mergebtn" data-pickfrom="'+i+'" title="まとめ先の行を自分で選ぶ（離れた行に寄せたいとき）">→選択</button>';
     } else {
       // 白色（自信あり）の行でも、規格へ寄せたい場面がある（中野さんの指摘③）。
       // 例：能力情報が独立した白行で残ったとき、隣の商品行の規格名称へまとめたい。
@@ -820,9 +877,16 @@ $("tbody").addEventListener("click", e=>{
     mergeRowToSpec(+e.target.dataset.merge, e.target.dataset.dir || "auto");
     return;
   }
+  if(e.target.dataset.cancelpick != null){
+    // 統合先指定モードをやめて元の表示に戻す（中野さん指摘C：キャンセル導線）
+    pickFrom = null;
+    render();
+    return;
+  }
   if(e.target.dataset.pickfrom != null){
-    // 統合先指定モードに入る（移動元を記憶し、各行に「ここへ」を出す）
-    pickFrom = +e.target.dataset.pickfrom;
+    const clicked = +e.target.dataset.pickfrom;
+    // 同じ行の「→選択」をもう一度押したら解除（トグル）。違う行ならその行を移動元にする。
+    pickFrom = (pickFrom === clicked) ? null : clicked;
     render();
     return;
   }
