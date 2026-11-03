@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>協電機工 日報フォーム</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #1e3a5f;
+      --accent: #c9a84c;
+      --bg: #f4f6f9;
+      --card: #ffffff;
+      --border: #dde3ec;
+      --text: #2c3e50;
+      --muted: #7f8c9a;
+      --success: #27ae60;
+      --role-gensya: #2980b9;
+      --role-sekisan: #8e44ad;
+      --role-kanri: #16a085;
+      --role-eigyo: #c0392b;
+      --role-clean: #d35400;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+      min-height: 100vh;
+      padding: 24px 16px 80px;
+    }
+
+    header { text-align: center; margin-bottom: 28px; }
+    header h1 { font-size: 1.5rem; color: var(--primary); letter-spacing: 0.08em; }
+    header p { color: var(--muted); font-size: 0.82rem; margin-top: 4px; }
+
+    .card {
+      background: var(--card);
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      padding: 24px;
+      max-width: 680px;
+      margin: 0 auto 20px;
+    }
+
+    .role-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .role-btn {
+      padding: 12px 8px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+      color: var(--muted);
+    }
+
+    .role-btn:hover { border-color: var(--accent); color: var(--text); }
+    .role-btn.active[data-role="gensya"]  { background: var(--role-gensya);  border-color: var(--role-gensya);  color: #fff; }
+    .role-btn.active[data-role="sekisan"] { background: var(--role-sekisan); border-color: var(--role-sekisan); color: #fff; }
+    .role-btn.active[data-role="kanri"]   { background: var(--role-kanri);   border-color: var(--role-kanri);   color: #fff; }
+    .role-btn.active[data-role="eigyo"]   { background: var(--role-eigyo);   border-color: var(--role-eigyo);   color: #fff; }
+    .role-btn.active[data-role="clean"]   { background: var(--role-clean);   border-color: var(--role-clean);   color: #fff; }
+
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .field { margin-bottom: 16px; }
+
+    label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    label .req { color: #e74c3c; margin-left: 3px; font-size: 0.75rem; }
+
+    input[type="text"],
+    input[type="date"],
+    input[type="number"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      color: var(--text);
+      background: #fafbfd;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--accent);
+      background: #fff;
+    }
+
+    textarea { resize: vertical; min-height: 72px; }
+
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .check-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .check-item input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    /* 大型物件バッジ */
+    .large-badge {
+      display: inline-block;
+      background: #e8f4fd;
+      color: var(--role-gensya);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+      margin-left: 6px;
+      letter-spacing: 0.05em;
+    }
+
+    .role-section { display: none; }
+    .role-section.active { display: block; }
+
+    /* 出力エリア（スマホ対応：textareaに変更） */
+    .output-textarea {
+      width: 100%;
+      background: #1a1a2e;
+      color: #e8e0d0;
+      border: none;
+      border-radius: 10px;
+      padding: 18px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.82rem;
+      line-height: 1.8;
+      white-space: pre-wrap;
+      word-break: break-all;
+      min-height: 120px;
+      margin-top: 12px;
+      resize: none;
+      outline: none;
+      cursor: text;
+    }
+
+    .output-hint {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 6px;
+    }
+
+    /* ボタン */
+    .btn-row { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+
+    .btn {
+      flex: 1;
+      min-width: 80px;
+      padding: 13px 8px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .btn-generate { background: var(--primary); color: #fff; }
+    .btn-generate:hover { background: #162d4a; }
+
+    .btn-copy { background: var(--accent); color: #fff; }
+    .btn-copy:hover { background: #b8922e; }
+    .btn-copy:disabled { background: #ccc; cursor: default; }
+
+    .btn-done {
+      background: var(--success);
+      color: #fff;
+      display: none;
+    }
+    .btn-done:hover { background: #219a52; }
+    .btn-done.visible { display: flex; align-items: center; justify-content: center; }
+
+    .btn-reset { background: #ecf0f1; color: var(--muted); }
+    .btn-reset:hover { background: #dde3ec; }
+
+    .copy-success {
+      text-align: center;
+      color: var(--success);
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-top: 8px;
+      min-height: 20px;
+    }
+
+    /* 復元バナー */
+    .restore-banner {
+      background: #fff8e1;
+      border: 1px solid #f9ca24;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.82rem;
+      color: #7d6608;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .restore-banner.visible { display: flex; }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>協電機工　日報フォーム</h1>
+  <p>役割を選んで入力 → Chatwork用テキストをコピー</p>
+</header>
+
+<!-- 役割選択 -->
+<div class="card">
+  <div class="section-label">① 役割を選択</div>
+  <div class="role-grid">
+    <button class="role-btn" data-role="gensya"  onclick="selectRole(this)">現場代理人</button>
+    <button class="role-btn" data-role="sekisan" onclick="selectRole(this)">積算</button>
+    <button class="role-btn" data-role="kanri"   onclick="selectRole(this)">管理本部</button>
+    <button class="role-btn" data-role="eigyo"   onclick="selectRole(this)">設備営業</button>
+    <button class="role-btn" data-role="clean"   onclick="selectRole(this)">クリーンリフレ</button>
+  </div>
+</div>
+
+<!-- 共通項目 -->
+<div class="card" id="common-card" style="display:none;">
+  <div class="section-label">② 共通項目</div>
+  <div class="row-2">
+    <div class="field">
+      <label>名前<span class="req">*</span></label>
+      <select id="name">
+        <option value="">-- 選択 --</option>
+        <option>岡本隆成</option>
+        <option>下田翔征</option>
+        <option>高野浩昭</option>
+        <option>崎元智美</option>
+        <option>浦崎研次</option>
+        <option>千原浩義</option>
+        <option>田口ひとみ</option>
+        <option>中野智美子</option>
+        <option>野田りの</option>
+        <option>白河裕子</option>
+        <option>山本良平</option>
+        <option>黒田健</option>
+        <option>城戸しの</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>日付<span class="req">*</span></label>
+      <input type="date" id="date">
+    </div>
+  </div>
+</div>
+
+<!-- 現場代理人 -->
+<div class="card role-section" id="sec-gensya">
+  <div class="section-label">③ 現場代理人 — 入力項目</div>
+
+  <div class="field">
+    <label>工事名<span class="req">*</span>
+      <span class="large-badge">大型・長期はスクロールで選択</span>
+    </label>
+    <select id="g-koji-select" onchange="syncKoji()">
+      <option value="">-- 工事名を選択（または下に直接入力）--</option>
+      <optgroup label="大型・長期物件">
+        <option>松橋東支援学</option>
+        <option>田井島1丁目</option>
+        <option>田井島2丁目</option>
+      </optgroup>
+      <option value="__other__">その他（下に入力）</option>
+    </select>
+    <input type="text" id="g-koji" placeholder="直接入力または上で選択" style="margin-top:8px;">
+  </div>
+
+  <div class="field">
+    <label>費やした時間（時間）<span class="req">*</span></label>
+    <input type="number" id="g-time" placeholder="例：4" min="0" step="0.5">
+  </div>
+  <div class="field">
+    <label>追加・変更工事（予算・原価に影響するもの）</label>
+    <textarea id="g-change" placeholder="なければ空欄"></textarea>
+  </div>
+  <div class="field">
+    <label>お客様（元請）からの要望事項・クレーム</label>
+    <textarea id="g-claim" placeholder="なければ空欄"></textarea>
+  </div>
+  <div class="field">
+    <label>協力業者の声・ライバル情報</label>
+    <textarea id="g-rival" placeholder="なければ空欄"></textarea>
+  </div>
+  <div class="field">
+    <label>「ところで」をお客様にしたか</label>
+    <div class="check-group">
+      <label class="check-item"><input type="checkbox" class="g-tokoro" value="「ところで」をした"> ところで</label>
+      <label class="check-item"><input type="checkbox" class="g-tokoro" value="「やっぱり」をした"> やっぱり</label>
+      <label class="check-item"><input type="checkbox" class="g-tokoro" value="「もし」をした"> もし</label>
+      <label class="check-item"><input type="checkbox" class="g-tokoro" value="全部しなかった"> 全部しなかった</label>
+    </div>
+  </div>
+  <div class="field">
+    <label>お客様の会社名・担当者名</label>
+    <input type="text" id="g-client" placeholder="例：浦上様">
+  </div>
+  <div class="field">
+    <label>「ところで」の話をしたときのお客様の反応・お声・商材</label>
+    <textarea id="g-reaction" placeholder="なければ空欄"></textarea>
+  </div>
+  <div class="field">
+    <label>その他・備考</label>
+    <textarea id="g-other" placeholder="ハイスピ案件・特記事項など"></textarea>
+  </div>
+</div>
+
+<!-- 積算 -->
+<div class="card role-section" id="sec-sekisan">
+  <div class="section-label">③ 積算 — 入力項目</div>
+  <div class="field">
+    <label>お客様名<span class="req">*</span></label>
+    <input type="text" id="s-client" placeholder="例：熊本市">
+  </div>
+  <div class="field">
+    <label>案件名<span class="req">*</span></label>
+    <input type="text" id="s-project" placeholder="例：城南中学校図書室冷暖房設備改修工事">
+  </div>
+  <div class="field">
+    <label>何をしたのか<span class="req">*</span></label>
+    <input type="text" id="s-what" placeholder="例：見積依頼　引継書作成">
+  </div>
+  <div class="field">
+    <label>進捗率</label>
+    <input type="text" id="s-progress" placeholder="例：50%">
+  </div>
+  <div class="field">
+    <label>その内容</label>
+    <textarea id="s-detail" placeholder="例：旭電業・空研　見積依頼"></textarea>
+  </div>
+  <div class="field">
+    <label>かかった時間（時間）<span class="req">*</span></label>
+    <input type="number" id="s-time" placeholder="例：0.5" min="0" step="0.5">
+  </div>
+  <div class="field">
+    <label>その他・備考</label>
+    <textarea id="s-other" placeholder="ハイスピ案件・特記事項など"></textarea>
+  </div>
+</div>
+
+<!-- 管理本部 -->
+<div class="card role-section" id="sec-kanri">
+  <div class="section-label">③ 管理本部 — 入力項目</div>
+  <div class="field">
+    <label>業務内容<span class="req">*</span>（複数ある場合は改行で区切ってください）</label>
+    <textarea id="k-content" style="min-height:140px;" placeholder="例：&#10;勤怠チェック&#10;・スピード決裁チェック・登録&#10;・勤怠修正"></textarea>
+  </div>
+  <div class="field">
+    <label>その他・備考</label>
+    <textarea id="k-other" placeholder="特記事項など"></textarea>
+  </div>
+</div>
+
+<!-- 設備営業 -->
+<div class="card role-section" id="sec-eigyo">
+  <div class="section-label">③ 設備営業 — 入力項目</div>
+  <div class="row-2">
+    <div class="field">
+      <label>会社名・訪問先<span class="req">*</span></label>
+      <input type="text" id="e-company" placeholder="例：岩永組">
+    </div>
+    <div class="field">
+      <label>先方担当者</label>
+      <input type="text" id="e-person" placeholder="例：小平さん">
+    </div>
+  </div>
+  <div class="field">
+    <label>何をしてきたのか<span class="req">*</span></label>
+    <input type="text" id="e-what" placeholder="例：打ち合わせ【金額の相談等】">
+  </div>
+  <div class="field">
+    <label>その内容</label>
+    <textarea id="e-detail" placeholder="例：&#10;第二幼稚園&#10;コンセントは直に工事&#10;ガス給湯器リモコン　受注"></textarea>
+  </div>
+  <div class="field">
+    <label>ところでの種類</label>
+    <input type="text" id="e-tokoro" placeholder="例：消防是正">
+  </div>
+  <div class="field">
+    <label>その内容（ところでの話）</label>
+    <textarea id="e-tokoro-detail" placeholder="なければ空欄"></textarea>
+  </div>
+  <div class="field">
+    <label>その他・備考</label>
+    <textarea id="e-other" placeholder="ハイスピ案件・特記事項など"></textarea>
+  </div>
+</div>
+
+<!-- クリーンリフレ -->
+<div class="card role-section" id="sec-clean">
+  <div class="section-label">③ クリーンリフレ — 入力項目</div>
+  <div class="row-2">
+    <div class="field">
+      <label>会社名・訪問先<span class="req">*</span></label>
+      <input type="text" id="c-company" placeholder="例：和数奇">
+    </div>
+    <div class="field">
+      <label>先方担当者</label>
+      <input type="text" id="c-person" placeholder="例：林田さん">
+    </div>
+  </div>
+  <div class="field">
+    <label>何をしてきたのか<span class="req">*</span></label>
+    <input type="text" id="c-what" placeholder="例：打ち合わせ【金額の相談等】">
+  </div>
+  <div class="field">
+    <label>その内容</label>
+    <textarea id="c-detail" placeholder="例：フィルターの講習"></textarea>
+  </div>
+  <div class="field">
+    <label>その他・備考</label>
+    <textarea id="c-other" placeholder="特記事項など"></textarea>
+  </div>
+</div>
+
+<!-- 出力・コピー -->
+<div class="card" id="output-card" style="display:none;">
+  <div class="section-label">④ Chatwork用テキスト</div>
+
+  <!-- 復元バナー（スマホで戻ってきたとき） -->
+  <div class="restore-banner" id="restore-banner">
+    <span>📋 前回生成したテキストが残っています</span>
+    <button onclick="clearSaved()" style="background:none;border:none;color:#7d6608;font-weight:700;cursor:pointer;font-size:0.8rem;">消去</button>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-generate" onclick="generate()">テキスト生成</button>
+    <button class="btn btn-copy" id="copy-btn" onclick="copyText()" disabled>コピー</button>
+    <button class="btn btn-reset" onclick="resetForm()">リセット</button>
+  </div>
+
+  <!-- スマホ対応：textareaに変更（タップで全選択しやすい） -->
+  <textarea class="output-textarea" id="output" readonly onclick="this.select()" placeholder="「テキスト生成」を押すとChatwork用テキストが表示されます"></textarea>
+  <p class="output-hint">📱 スマホの場合：テキストをタップ → 全選択 → コピー</p>
+
+  <!-- 送信完了ボタン（コピー後に出現） -->
+  <div class="btn-row" style="margin-top:12px;">
+    <button class="btn btn-done" id="done-btn" onclick="confirmDone()">✅ Chatworkに貼り付け完了 → 次の日報へ</button>
+  </div>
+
+  <div class="copy-success" id="copy-msg"></div>
+
+  <!-- スプレッドシート記録ステータス -->
+  <div id="sheet-status" style="text-align:center;font-size:0.78rem;margin-top:6px;min-height:18px;"></div>
+</div>
+
+<script>
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbyBtQt5S4N5eIti8LtHFIN49JSbeZhBDE52-ZKOEkB8slJzhLWWGqP24jh_cvknqE5f/exec';
+
+  let currentRole = null;
+
+  document.getElementById('date').valueAsDate = new Date();
+
+  // 起動時：保存済みテキストを復元
+  window.addEventListener('load', () => {
+    const saved = localStorage.getItem('nippou_text');
+    if (saved) {
+      document.getElementById('output').value = saved;
+      document.getElementById('copy-btn').disabled = false;
+      document.getElementById('restore-banner').classList.add('visible');
+      document.getElementById('done-btn').classList.add('visible');
+      document.getElementById('output-card').style.display = 'block';
+    }
+  });
+
+  function selectRole(btn) {
+    document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentRole = btn.dataset.role;
+
+    document.querySelectorAll('.role-section').forEach(s => s.classList.remove('active'));
+    document.getElementById('sec-' + currentRole).classList.add('active');
+
+    document.getElementById('common-card').style.display = 'block';
+    document.getElementById('output-card').style.display = 'block';
+  }
+
+  // 工事名ドロップダウン連動
+  function syncKoji() {
+    const sel = document.getElementById('g-koji-select').value;
+    if (sel && sel !== '__other__') {
+      document.getElementById('g-koji').value = sel;
+    } else if (sel === '__other__') {
+      document.getElementById('g-koji').value = '';
+      document.getElementById('g-koji').focus();
+    }
+  }
+
+  function v(id) {
+    return (document.getElementById(id)?.value || '').trim();
+  }
+
+  function generate() {
+    if (!currentRole) { alert('役割を選択してください'); return; }
+
+    const name = v('name');
+    const date = v('date').replace(/-/g, '/');
+    if (!name) { alert('名前を選択してください'); return; }
+    if (!date) { alert('日付を入力してください'); return; }
+
+    const header = `(i) 【日報 自動投稿】\n名前：${name}　日付：${date}`;
+    let body = '';
+
+    if (currentRole === 'gensya') {
+      const koji   = v('g-koji') || v('g-koji-select');
+      const time   = v('g-time');
+      const change = v('g-change');
+      const claim  = v('g-claim');
+      const rival  = v('g-rival');
+      const checks = [...document.querySelectorAll('.g-tokoro:checked')].map(c => c.value);
+      const client = v('g-client');
+      const react  = v('g-reaction');
+      const other  = v('g-other');
+      if (!koji) { alert('工事名を入力してください'); return; }
+      body = `工事名：${koji}
+かかった時間：${time}
+【追加変更工事についてあれば記入（予算、原価に影響するもの）】
+${change}
+【お客様（元請）からの要望事項（クレーム含む）】
+${claim}
+【協力業者の声、ライバル情報】
+${rival}
+【ところでの種類】
+${checks.length ? checks.join('　') : ''}
+【お客様の会社名・担当者】
+${client}
+【お客様反応】
+${react}${other ? '\n【その他】\n' + other : ''}`;
+
+    } else if (currentRole === 'sekisan') {
+      const other = v('s-other');
+      body = `【お客様名】
+${v('s-client')}
+【案件名】
+${v('s-project')}
+【何をしたのか】
+${v('s-what')}
+【進捗率】
+${v('s-progress')}
+【その内容】
+${v('s-detail')}
+【かかった時間】
+${v('s-time')}${other ? '\n【その他】\n' + other : ''}`;
+
+    } else if (currentRole === 'kanri') {
+      const other = v('k-other');
+      body = `【内容】
+${v('k-content')}${other ? '\n【その他】\n' + other : ''}`;
+
+    } else if (currentRole === 'eigyo') {
+      const other = v('e-other');
+      body = `【会社名・訪問先】
+${v('e-company')}
+【先方担当者】
+${v('e-person')}
+【何をしてきたのか】
+${v('e-what')}
+【その内容】
+${v('e-detail')}
+【ところでの種類】
+${v('e-tokoro')}
+【その内容】
+${v('e-tokoro-detail')}${other ? '\n【その他】\n' + other : ''}`;
+
+    } else if (currentRole === 'clean') {
+      const other = v('c-other');
+      body = `【会社名・訪問先】
+${v('c-company')}
+【先方担当者】
+${v('c-person')}
+【何をしてきたのか】
+${v('c-what')}
+【その内容】
+${v('c-detail')}${other ? '\n【その他】\n' + other : ''}`;
+    }
+
+    const result = header + '\n' + body;
+    document.getElementById('output').value = result;
+    document.getElementById('copy-btn').disabled = false;
+    document.getElementById('restore-banner').classList.remove('visible');
+
+    // localStorage に保存（スマホ切替対策）
+    localStorage.setItem('nippou_text', result);
+
+    // スプレッドシートに送信＋Chatwork自動投稿
+    sendToSheet(name, date, currentRole, result);
+  }
+
+  const roleLabel = {
+    gensya: '現場代理人', sekisan: '積算',
+    kanri: '管理本部', eigyo: '設備営業', clean: 'クリーンリフレ'
+  };
+
+  function buildGasData(role, name, date) {
+    const base = { name, date, role: roleLabel[role] || role };
+    if (role === 'gensya') {
+      const checks = [...document.querySelectorAll('.g-tokoro:checked')].map(c => c.value);
+      return { ...base,
+        main: v('g-koji') || v('g-koji-select'),
+        time: v('g-time'), detail: v('g-change'),
+        claim: v('g-claim'), rival: v('g-rival'),
+        tokoro: checks.join('　'), client: v('g-client'),
+        reaction: v('g-reaction'), other: v('g-other') };
+    } else if (role === 'sekisan') {
+      return { ...base,
+        main: v('s-project'), time: v('s-time'),
+        detail: v('s-what') + ' ' + v('s-detail'),
+        claim: '', rival: '', tokoro: '',
+        client: v('s-client'), reaction: v('s-progress'), other: v('s-other') };
+    } else if (role === 'kanri') {
+      return { ...base,
+        main: v('k-content'), time: '', detail: '',
+        claim: '', rival: '', tokoro: '',
+        client: '', reaction: '', other: v('k-other') };
+    } else if (role === 'eigyo') {
+      return { ...base,
+        main: v('e-company'), time: '', detail: v('e-what') + ' ' + v('e-detail'),
+        claim: '', rival: '', tokoro: v('e-tokoro'),
+        client: v('e-person'), reaction: v('e-tokoro-detail'), other: v('e-other') };
+    } else if (role === 'clean') {
+      return { ...base,
+        main: v('c-company'), time: '', detail: v('c-what') + ' ' + v('c-detail'),
+        claim: '', rival: '', tokoro: '',
+        client: v('c-person'), reaction: '', other: v('c-other') };
+    }
+    return base;
+  }
+
+  function sendToSheet(name, date, role, text) {
+    const status = document.getElementById('sheet-status');
+    status.style.color = '#7f8c9a';
+    status.textContent = '📊 送信中...';
+
+    const payload = buildGasData(role, name, date);
+    payload.text = text || '';
+
+    fetch(GAS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload)
+    }).then(() => {
+      status.style.color = '#27ae60';
+      status.textContent = '✅ スプレッドシート記録＆Chatwork自動投稿 完了';
+      setTimeout(() => { status.textContent = ''; }, 6000);
+    }).catch(() => {
+      status.style.color = '#e74c3c';
+      status.textContent = '⚠️ 送信に失敗しました';
+    });
+  }
+
+  function copyText() {
+    const text = document.getElementById('output').value;
+    if (!text) return;
+
+    // クリップボードにコピー
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(showCopied).catch(() => fallbackCopy(text));
+    } else {
+      fallbackCopy(text);
+    }
+  }
+
+  function fallbackCopy(text) {
+    const ta = document.getElementById('output');
+    ta.select();
+    ta.setSelectionRange(0, 99999);
+    document.execCommand('copy');
+    showCopied();
+  }
+
+  function showCopied() {
+    const msg = document.getElementById('copy-msg');
+    msg.textContent = 'コピーしました！Chatworkに貼り付けてください';
+    document.getElementById('done-btn').classList.add('visible');
+    setTimeout(() => { msg.textContent = ''; }, 4000);
+  }
+
+  // 送信完了 → リセット
+  function confirmDone() {
+    if (confirm('Chatworkへの貼り付けが完了しましたか？\nOKを押すとフォームをリセットします。')) {
+      resetForm();
+    }
+  }
+
+  function clearSaved() {
+    localStorage.removeItem('nippou_text');
+    document.getElementById('restore-banner').classList.remove('visible');
+    document.getElementById('output').value = '';
+    document.getElementById('copy-btn').disabled = true;
+    document.getElementById('done-btn').classList.remove('visible');
+  }
+
+  function resetForm() {
+    document.querySelectorAll('input[type="text"], input[type="number"], textarea').forEach(el => {
+      if (el.id !== 'date' && !el.classList.contains('output-textarea')) el.value = '';
+    });
+    document.querySelectorAll('select').forEach(el => {
+      if (el.id !== 'name') el.selectedIndex = 0;
+    });
+    document.querySelectorAll('input[type="checkbox"]').forEach(el => el.checked = false);
+    document.getElementById('date').valueAsDate = new Date();
+    document.getElementById('output').value = '';
+    document.getElementById('copy-btn').disabled = true;
+    document.getElementById('done-btn').classList.remove('visible');
+    document.getElementById('copy-msg').textContent = '';
+    document.getElementById('restore-banner').classList.remove('visible');
+    localStorage.removeItem('nippou_text');
+  }
+</script>
+</body>
+</html>
